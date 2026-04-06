@@ -95,7 +95,9 @@ function ShoppingHome() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prevSlide) => (prevSlide + 1) % featureImageList.length);
+      if (featureImageList && featureImageList.length > 0) {
+        setCurrentSlide((prevSlide) => (prevSlide + 1) % featureImageList.length);
+      }
     }, 15000);
 
     return () => clearInterval(timer);
@@ -110,16 +112,13 @@ function ShoppingHome() {
     );
   }, [dispatch]);
 
-  console.log(productList, "productList");
-  console.log(featureImageList, "featureImageList");
-
   useEffect(() => {
     dispatch(getFeatureImages());
   }, [dispatch]);
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <div className="relative w-full h-[600px] overflow-hidden">
+    <div className="flex min-h-screen flex-col bg-slate-50">
+      <section className="relative w-full overflow-hidden bg-slate-950">
         {featureImageList && featureImageList.length > 0
           ? featureImageList.map((slide, index) => (
               <img
@@ -127,10 +126,72 @@ function ShoppingHome() {
                 key={index}
                 className={`${
                   index === currentSlide ? "opacity-100" : "opacity-0"
-                } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000`}
+                } absolute left-0 top-0 h-full w-full object-cover transition-opacity duration-1000`}
               />
             ))
           : null}
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,_rgba(2,6,23,0.82),_rgba(2,6,23,0.35),_rgba(2,6,23,0.15))]" />
+        <div className="relative mx-auto grid min-h-[560px] max-w-7xl items-center px-4 py-12 md:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
+          <div className="max-w-2xl space-y-6 text-white">
+            <span className="inline-flex rounded-full border border-white/10 bg-white/10 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-sky-100">
+              Light blue marketplace
+            </span>
+            <h1 className="text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
+              Discover your next favorite product with a cleaner marketplace feel.
+            </h1>
+            <p className="max-w-xl text-base leading-7 text-slate-200 sm:text-lg">
+              Browse curated categories, popular brands, and featured offers in a storefront styled for speed and confidence.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                onClick={() => navigate("/shop/listing")}
+                className="h-12 rounded-full bg-sky-500 px-6 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 hover:bg-sky-400"
+              >
+                Shop now
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/shop/search")}
+                className="h-12 rounded-full border-white/15 bg-white/10 px-6 text-sm font-semibold text-white hover:bg-white/15 hover:text-white"
+              >
+                Search products
+              </Button>
+            </div>
+            <div className="grid gap-3 pt-4 sm:grid-cols-3">
+              <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
+                <p className="text-xs uppercase tracking-[0.24em] text-slate-300">Fast checkout</p>
+                <p className="mt-2 text-sm font-semibold">Secure payment flow</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
+                <p className="text-xs uppercase tracking-[0.24em] text-slate-300">Popular brands</p>
+                <p className="mt-2 text-sm font-semibold">Curated shopping</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
+                <p className="text-xs uppercase tracking-[0.24em] text-slate-300">Trusted orders</p>
+                <p className="mt-2 text-sm font-semibold">Easy account tracking</p>
+              </div>
+            </div>
+          </div>
+          <div className="mt-10 grid gap-4 lg:mt-0 lg:justify-self-end">
+            <div className="rounded-[1.75rem] border border-white/10 bg-white/10 p-5 text-white shadow-2xl backdrop-blur-md">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-sky-100">Trending now</p>
+              <h2 className="mt-2 text-2xl font-black tracking-tight">Fresh drops, clean layout.</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-200">
+                A marketplace-style entry point that keeps the focus on products, brands, and value.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-[1.5rem] bg-white p-5 shadow-xl shadow-slate-950/10">
+                <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Categories</p>
+                <p className="mt-2 text-3xl font-black text-slate-950">05</p>
+              </div>
+              <div className="rounded-[1.5rem] bg-sky-600 p-5 text-white shadow-xl shadow-sky-600/25">
+                <p className="text-xs uppercase tracking-[0.24em] text-white/70">Featured</p>
+                <p className="mt-2 text-3xl font-black">24/7</p>
+              </div>
+            </div>
+          </div>
+        </div>
         <Button
           variant="outline"
           size="icon"
@@ -141,7 +202,7 @@ function ShoppingHome() {
                 featureImageList.length
             )
           }
-          className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/80"
+          className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full border-white/20 bg-white/80 text-slate-950 shadow-lg backdrop-blur"
         >
           <ChevronLeftIcon className="w-4 h-4" />
         </Button>
@@ -153,27 +214,33 @@ function ShoppingHome() {
               (prevSlide) => (prevSlide + 1) % featureImageList.length
             )
           }
-          className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/80"
+          className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full border-white/20 bg-white/80 text-slate-950 shadow-lg backdrop-blur"
         >
           <ChevronRightIcon className="w-4 h-4" />
         </Button>
-      </div>
-      <section className="py-12 bg-gray-50">
+      </section>
+      <section className="border-b border-slate-200/70 bg-white py-12">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8">
+          <div className="mx-auto mb-8 max-w-2xl text-center">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-sky-600">Browse by category</p>
+            <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950">
             Shop by category
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600">Quickly jump into the departments customers browse most often.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
             {categoriesWithIcon.map((categoryItem) => (
               <Card
                 onClick={() =>
                   handleNavigateToListingPage(categoryItem, "category")
                 }
-                className="cursor-pointer hover:shadow-lg transition-shadow"
+                className="cursor-pointer rounded-2xl border-slate-200/80 bg-slate-50 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
               >
-                <CardContent className="flex flex-col items-center justify-center p-6">
-                  <categoryItem.icon className="w-12 h-12 mb-4 text-primary" />
-                  <span className="font-bold">{categoryItem.label}</span>
+                <CardContent className="flex flex-col items-center justify-center p-6 text-center">
+                  <div className="grid h-14 w-14 place-items-center rounded-2xl bg-sky-50 text-sky-700 ring-1 ring-sky-100">
+                    <categoryItem.icon className="h-7 w-7" />
+                  </div>
+                  <span className="mt-4 font-semibold text-slate-900">{categoryItem.label}</span>
                 </CardContent>
               </Card>
             ))}
@@ -181,18 +248,24 @@ function ShoppingHome() {
         </div>
       </section>
 
-      <section className="py-12 bg-gray-50">
+      <section className="border-b border-slate-200/70 bg-slate-50 py-12">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8">Shop by Brand</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="mx-auto mb-8 max-w-2xl text-center">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-sky-600">Brand collection</p>
+            <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950">Shop by brand</h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600">Explore labels people trust, presented in a cleaner storefront grid.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
             {brandsWithIcon.map((brandItem) => (
               <Card
                 onClick={() => handleNavigateToListingPage(brandItem, "brand")}
-                className="cursor-pointer hover:shadow-lg transition-shadow"
+                className="cursor-pointer rounded-2xl border-slate-200/80 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
               >
-                <CardContent className="flex flex-col items-center justify-center p-6">
-                  <brandItem.icon className="w-12 h-12 mb-4 text-primary" />
-                  <span className="font-bold">{brandItem.label}</span>
+                <CardContent className="flex flex-col items-center justify-center p-6 text-center">
+                  <div className="grid h-14 w-14 place-items-center rounded-2xl bg-sky-50 text-sky-700 ring-1 ring-sky-100">
+                    <brandItem.icon className="h-7 w-7" />
+                  </div>
+                  <span className="mt-4 font-semibold text-slate-900">{brandItem.label}</span>
                 </CardContent>
               </Card>
             ))}
@@ -202,10 +275,12 @@ function ShoppingHome() {
 
       <section className="py-12">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8">
-            Feature Products
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="mx-auto mb-8 max-w-2xl text-center">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-sky-600">Featured selection</p>
+            <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950">Featured products</h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600">A hand-picked catalog area styled to feel closer to a modern retail homepage.</p>
+          </div>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {productList && productList.length > 0
               ? productList.map((productItem) => (
                   <ShoppingProductTile

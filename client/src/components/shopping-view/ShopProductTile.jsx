@@ -9,48 +9,48 @@ function ShoppingProductTile({
   handleAddtoCart,
 }) {
   return (
-    <Card className="w-full max-w-sm mx-auto">
-      <div onClick={() => handleGetProductDetails(product?._id)}>
-        <div className="relative">
+    <Card className="group w-full max-w-sm overflow-hidden rounded-[1.5rem] border-slate-200/80 bg-white shadow-[0_12px_36px_rgba(15,23,42,0.06)] transition-all hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
+      <div onClick={() => handleGetProductDetails(product?._id)} className="cursor-pointer">
+        <div className="relative overflow-hidden">
           <img
             src={product?.image}
             alt={product?.title}
-            className="w-full h-[300px] object-cover rounded-t-lg"
+            className="h-[280px] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />
           {product?.totalStock === 0 ? (
-            <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
+            <Badge className="absolute left-3 top-3 rounded-full bg-rose-500 px-3 py-1 text-white hover:bg-rose-600">
               Out Of Stock
             </Badge>
           ) : product?.totalStock < 10 ? (
-            <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
+            <Badge className="absolute left-3 top-3 rounded-full bg-amber-500 px-3 py-1 text-white hover:bg-amber-600">
               {`Only ${product?.totalStock} items left`}
             </Badge>
           ) : product?.salePrice > 0 ? (
-            <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
+            <Badge className="absolute left-3 top-3 rounded-full bg-sky-600 px-3 py-1 text-white hover:bg-sky-700">
               Sale
             </Badge>
           ) : null}
         </div>
-        <CardContent className="p-4">
-          <h2 className="text-xl font-bold mb-2">{product?.title}</h2>
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-[16px] text-muted-foreground">
+        <CardContent className="space-y-3 p-4">
+          <h2 className="line-clamp-2 text-lg font-semibold tracking-tight text-slate-950">{product?.title}</h2>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm text-slate-500">
               {categoryOptionsMap[product?.category]}
             </span>
-            <span className="text-[16px] text-muted-foreground">
+            <span className="text-sm text-slate-500">
               {brandOptionsMap[product?.brand]}
             </span>
           </div>
-          <div className="flex justify-between items-center mb-2">
+          <div className="flex items-center justify-between gap-3 rounded-2xl bg-sky-50 px-3 py-2">
             <span
               className={`${
-                product?.salePrice > 0 ? "line-through" : ""
-              } text-lg font-semibold text-primary`}
+                product?.salePrice > 0 ? "line-through text-slate-400" : "text-slate-950"
+              } text-lg font-semibold`}
             >
               ${product?.price}
             </span>
             {product?.salePrice > 0 ? (
-              <span className="text-lg font-semibold text-primary">
+              <span className="text-lg font-black text-sky-700">
                 ${product?.salePrice}
               </span>
             ) : null}
@@ -59,13 +59,13 @@ function ShoppingProductTile({
       </div>
       <CardFooter>
         {product?.totalStock === 0 ? (
-          <Button className="w-full opacity-60 cursor-not-allowed">
+          <Button className="w-full cursor-not-allowed rounded-2xl bg-slate-200 text-slate-500 opacity-100 hover:bg-slate-200">
             Out Of Stock
           </Button>
         ) : (
           <Button
             onClick={() => handleAddtoCart(product?._id, product?.totalStock)}
-            className="w-full"
+            className="w-full rounded-2xl bg-sky-600 text-white shadow-lg shadow-sky-600/20 hover:bg-sky-500"
           >
             Add to cart
           </Button>

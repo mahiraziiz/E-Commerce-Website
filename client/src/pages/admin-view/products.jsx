@@ -3,6 +3,7 @@ import AdminProductTile from "@/components/admin-view/AdminProductTile";
 import CommonForm from "@/components/common/Form";
 import { addProductFormElements } from "@/config";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   addNewProduct,
   deleteProduct,
@@ -41,6 +42,8 @@ function AdminProducts() {
   const { toast } = useToast();
   const dispatch = useDispatch();
 
+  const productCount = productList?.length || 0;
+
   function onSubmit(event) {
     event.preventDefault();
 
@@ -51,11 +54,10 @@ function AdminProducts() {
             formData,
           })
         ).then((data) => {
-          console.log(data, "Edit");
           if (data?.payload?.success) {
             dispatch(fetchAllProducts());
             setFormData(initialFormData);
-            openCreateProductDialog(false);
+            setOpenCreateProductDialog(false);
             setCurrentEditedId(null);
           }
         })
@@ -65,7 +67,6 @@ function AdminProducts() {
             image: uploadedImageUrl,
           })
         ).then((data) => {
-          console.log(data);
           if (data?.payload?.success) {
             setOpenCreateProductDialog(false);
             setImageFile(null);
@@ -83,7 +84,6 @@ function AdminProducts() {
   }
 
   function handleDelete(getCurrentProductId) {
-    console.log(getCurrentProductId);
     dispatch(deleteProduct(getCurrentProductId)).then((data) => {
       if (data?.payload?.success) {
         dispatch(fetchAllProducts());
@@ -94,16 +94,34 @@ function AdminProducts() {
   useEffect(() => {
     dispatch(fetchAllProducts());
   }, [dispatch]);
-  console.log(formData, "formData");
 
   return (
     <Fragment>
-      <div className="mb-5 w-full flex justify-end">
-        <Button onClick={() => setOpenCreateProductDialog(true)}>
-          Add New Products
-        </Button>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">
+            Inventory
+          </p>
+          <h1 className="text-3xl font-black tracking-tight text-slate-950">
+            Products
+          </h1>
+          <p className="max-w-2xl text-sm text-slate-600">
+            Add, edit, and manage the store catalog from a cleaner, faster workspace.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[22rem]">
+          <Card className="border-white/70 bg-white/80">
+            <CardContent className="p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Total products</p>
+              <p className="mt-2 text-3xl font-black text-slate-950">{productCount}</p>
+            </CardContent>
+          </Card>
+          <Button onClick={() => setOpenCreateProductDialog(true)} className="h-full rounded-2xl bg-slate-950 px-5 text-white shadow-lg shadow-slate-950/20 hover:bg-slate-800">
+            Add product
+          </Button>
+        </div>
       </div>
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {productList && productList.length > 0
           ? productList.map((productItem) => (
               <AdminProductTile
@@ -119,13 +137,17 @@ function AdminProducts() {
       </div>
       <Sheet
         open={openCreateProductDialog}
-        onOpenChange={() => {
-          setOpenCreateProductDialog(false);
-          setCurrentEditedId(null);
-          setFormData(initialFormData);
+        onOpenChange={(open) => {
+          setOpenCreateProductDialog(open);
+          if (!open) {
+            setCurrentEditedId(null);
+            setFormData(initialFormData);
+            setImageFile(null);
+            setUploadedImageUrl("");
+          }
         }}
       >
-        <SheetContent side="right" className="overflow-auto p-4">
+        <SheetContent side="right" className="overflow-auto border-l-0 bg-slate-50 p-4 sm:w-[28rem] sm:max-w-[28rem]">
           <SheetHeader>
             <SheetTitle>
               {currentEditedId !== null ? "Edited Product" : "Add New Product"}

@@ -20,15 +20,11 @@ import commonFeatureRouter from "./routes/common/feature.routes.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-//create database connection -> u can also
-//create a separate file for this and then import/use that file here
-mongoose
-  .connect(process.env.MONGODB_URL)
-  .then(() => console.log("MongoDB connected"))
-  .catch((error) => console.log(error));
+mongoose.set("bufferCommands", false);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const MONGODB_URL = process.env.MONGODB_URL;
 
 app.use(
   cors({
@@ -42,7 +38,7 @@ app.use(
       "Pragma",
     ],
     credentials: true,
-  })
+  }),
 );
 
 app.use(cookieParser());
@@ -62,4 +58,29 @@ app.use("/api/shop/search", shopSearchRouter);
 
 app.use("/api/common/feature", commonFeatureRouter);
 
-app.listen(PORT, () => console.log(`Server is now running on port ${PORT}`));
+async function startServer() {
+  if (!MONGODB_URL) {
+    console.error("MONGODB_URL is missing. Add it to server/.env and restart.");
+    process.exit(1);
+  }
+
+  try {
+    await mongoose.connect(MONGODB_URL, {
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 10000,
+    });
+
+    console.log("MongoDB connected");
+    app.listen(PORT, () =>
+      console.log(`Server is now running on port ${PORT}`),
+    );
+  } catch (error) {
+    console.error(
+      "MongoDB connection failed. Check the username and password in MONGODB_URL inside server/.env.",
+    );
+    console.error(error.message);
+    process.exit(1);
+  }
+}
+
+startServer();

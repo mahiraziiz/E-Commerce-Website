@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { User } from "../../models/user.models.js";
 
@@ -114,6 +115,97 @@ const logoutUser = (req, res) => {
   });
 };
 
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({
+      success: false,
+      message: "Please provide an email address.",
+    });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "No account found for this email.",
+      });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenHash = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    user.resetPasswordToken = resetTokenHash;
+    user.resetPasswordExpiresAt = Date.now() + 15 * 60 * 1000;
+    await user.save();
+
+    const resetUrl = `${process.env.CLIENT_BASE_URL || "http://localhost:5173"}/auth/reset-password/${resetToken}`;
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset link generated successfully.",
+      resetUrl,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to create password reset link.",
+    });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  if (!password) {
+    return res.status(400).json({
+      success: false,
+      message: "Please provide a new password.",
+    });
+  }
+
+  try {
+    const resetTokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      resetPasswordToken: resetTokenHash,
+      resetPasswordExpiresAt: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Reset token is invalid or has expired.",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.password = hashedPassword;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpiresAt = null;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password updated successfully.",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to reset password.",
+    });
+  }
+};
+
 //Auth-Middleware
 const authMiddleware = async (req, res, next) => {
   const token = req.cookies.token;
@@ -125,7 +217,7 @@ const authMiddleware = async (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, "ACCESS_TOKEN_SECRET");
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
     req.user = decoded;
     next();
   } catch (error) {
@@ -136,4 +228,4 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-export { registerUser, loginUser, logoutUser, authMiddleware };
+export { registerUser, loginUser, logoutUser, authMiddleware, forgotPassword, resetPassword };

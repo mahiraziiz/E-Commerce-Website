@@ -75,18 +75,18 @@ function UserCartItemsContent({ cartItem }) {
   }
 
   return (
-    <div className="flex items-center space-x-4">
+    <div className="flex items-center space-x-4 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
       <img
         src={cartItem?.image}
         alt={cartItem?.title}
-        className="w-20 h-20 rounded object-cover"
+        className="h-20 w-20 rounded-xl object-cover"
       />
       <div className="flex-1">
-        <h3 className="font-extrabold">{cartItem?.title}</h3>
+        <h3 className="font-semibold tracking-tight text-slate-950">{cartItem?.title}</h3>
         <div className="flex items-center gap-2 mt-1">
           <Button
             variant="outline"
-            className="h-8 w-8 rounded-full"
+            className="h-8 w-8 rounded-full border-slate-200 bg-slate-50 hover:bg-sky-50"
             size="icon"
             disabled={cartItem?.quantity === 1}
             onClick={() => handleUpdateQuantity(cartItem, "minus")}
@@ -97,7 +97,7 @@ function UserCartItemsContent({ cartItem }) {
           <span className="font-semibold">{cartItem?.quantity}</span>
           <Button
             variant="outline"
-            className="h-8 w-8 rounded-full"
+            className="h-8 w-8 rounded-full border-slate-200 bg-slate-50 hover:bg-sky-50"
             size="icon"
             onClick={() => handleUpdateQuantity(cartItem, "plus")}
           >
@@ -107,7 +107,7 @@ function UserCartItemsContent({ cartItem }) {
         </div>
       </div>
       <div className="flex flex-col items-end">
-        <p className="font-semibold">
+        <p className="font-bold text-slate-950">
           $
           {(
             (cartItem?.salePrice > 0 ? cartItem?.salePrice : cartItem?.price) *
@@ -116,7 +116,7 @@ function UserCartItemsContent({ cartItem }) {
         </p>
         <Trash
           onClick={() => handleCartItemDelete(cartItem)}
-          className="cursor-pointer mt-1"
+          className="mt-1 cursor-pointer text-slate-400 transition hover:text-rose-500"
           size={20}
         />
       </div>

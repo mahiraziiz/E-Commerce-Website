@@ -5,7 +5,7 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import { Fragment } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 
 const adminSidebarMenuItems = [
@@ -31,20 +31,27 @@ const adminSidebarMenuItems = [
 
 function MenuItems({ setOpen }) {
   const navigate = useNavigate();
+  const location = useLocation();
   return (
-    <nav className="mt-8 flex-col flex gap-2">
+    <nav className="mt-8 flex flex-col gap-2">
       {adminSidebarMenuItems.map((menuItems) => (
-        <div
+        <button
           key={menuItems.id}
           onClick={() => {
             navigate(menuItems.path);
             setOpen ? setOpen(false) : null;
           }}
-          className="flex text-xl cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-muted-foreground hover:text-foreground"
+          className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium transition-all duration-200 hover:translate-x-0.5 hover:bg-white/10 hover:text-white ${
+            location.pathname.includes(menuItems.id)
+              ? "bg-white/10 text-white ring-1 ring-inset ring-white/10"
+              : "bg-transparent text-slate-400"
+          }`}
         >
-          {menuItems.icons}
-          <span>{menuItems.label}</span>
-        </div>
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/5 text-current ring-1 ring-inset ring-white/10">
+            {menuItems.icons}
+          </span>
+          <span className="text-base">{menuItems.label}</span>
+        </button>
       ))}
     </nav>
   );
@@ -56,25 +63,39 @@ function AdminSideBar({ open, setOpen }) {
   return (
     <Fragment>
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="w-64">
-          <div className="flex flex-col h-full">
-            <SheetHeader className="border-b">
-              <SheetTitle className="flex gap-2 mt-5 mb-5 ">
-                <ChartNoAxesCombined size={30} />
-                <h1 className="text-2xl font-extrabold">Admin Panel</h1>
+        <SheetContent side="left" className="w-[18rem] border-r-0 bg-slate-950 p-0 text-white">
+          <div className="flex h-full flex-col bg-[linear-gradient(180deg,_rgba(15,23,42,0.98),_rgba(15,23,42,0.94))] p-6">
+            <SheetHeader className="border-b border-white/10 pb-4">
+              <SheetTitle className="flex items-center gap-3 text-left text-white">
+                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-400 text-slate-950 shadow-lg shadow-amber-500/20">
+                  <ChartNoAxesCombined size={24} />
+                </span>
+                <div>
+                  <h1 className="text-xl font-black tracking-tight">Admin Panel</h1>
+                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
+                    Store control center
+                  </p>
+                </div>
               </SheetTitle>
             </SheetHeader>
             <MenuItems setOpen={setOpen} />
           </div>
         </SheetContent>
       </Sheet>
-      <aside className="hidden w-64 flex-col border-r bg-background p-6 lg:flex">
+      <aside className="hidden w-[18rem] flex-col border-r border-white/10 bg-slate-950 p-6 text-white shadow-[8px_0_40px_rgba(15,23,42,0.12)] lg:flex">
         <div
           onClick={() => navigate("/admin/dashboard")}
-          className="flex cursor-pointer items-center gap-2"
+          className="flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:bg-white/10"
         >
-          <ChartNoAxesCombined size={30} />
-          <h1 className="text-2xl font-extrabold">Admin Panel</h1>
+          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-400 text-slate-950 shadow-lg shadow-amber-500/20">
+            <ChartNoAxesCombined size={24} />
+          </span>
+          <div>
+            <h1 className="text-xl font-black tracking-tight">Admin Panel</h1>
+            <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
+              Store control center
+            </p>
+          </div>
         </div>
         <MenuItems setOpen={setOpen} />
       </aside>

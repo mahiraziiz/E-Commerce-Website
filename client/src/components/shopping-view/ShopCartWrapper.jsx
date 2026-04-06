@@ -18,25 +18,25 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
       : 0;
 
   return (
-    <SheetContent className="sm:max-md">
-      <SheetHeader>
-        <SheetTitle>Your Cart</SheetTitle>
+    <SheetContent className="border-slate-200 bg-white sm:max-w-md">
+      <SheetHeader className="border-b border-slate-100 pb-4">
+        <SheetTitle className="text-xl font-black tracking-tight text-slate-950">Your cart</SheetTitle>
       </SheetHeader>
-      <div className="mt-8 space-y-4 ">
+      <div className="mt-6 space-y-4">
         {cartItems && cartItems.length > 0 ? (
           cartItems.map((item) => (
             <UserCartItemsContent key={item.productId} cartItem={item} />
           ))
         ) : (
-          <p className="text-center text-muted-foreground">
+          <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-500">
             Your cart is empty.
           </p>
         )}
       </div>
-      <div className="mt-8 space-y-4">
-        <div className="flex justify-between">
-          <span className="font-bold"> Total</span>
-          <span className="font-bold"> ${totalCartAmount}</span>
+      <div className="mt-8 space-y-4 rounded-2xl bg-sky-50 p-4">
+        <div className="flex justify-between text-slate-700">
+          <span className="font-medium">Total</span>
+          <span className="font-black text-slate-950">${totalCartAmount}</span>
         </div>
       </div>
       <Button
@@ -44,7 +44,7 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
           navigate("/shop/checkout");
           setOpenCartSheet(false);
         }}
-        className="w-full mt-6"
+        className="mt-6 w-full rounded-2xl bg-sky-600 text-white hover:bg-sky-500"
       >
         Checkout
       </Button>

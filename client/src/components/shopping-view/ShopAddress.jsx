@@ -26,9 +26,8 @@ function Address({ setCurrentSelectedAddress, selectedId }) {
   const { user } = useSelector((state) => state.auth);
   const { addressList } = useSelector((state) => state.shopAddress);
   const dispatch = useDispatch();
-  const toast = useToast();
+  const { toast } = useToast();
 
-  console.log(addressList, "addressList");
   function handleManageAddress(event) {
     event.preventDefault();
 
@@ -111,11 +110,12 @@ function Address({ setCurrentSelectedAddress, selectedId }) {
   }, [dispatch]);
 
   return (
-    <Card>
-      <div className="mb-5 p-3 grid grid-cols-1 sm:grid-cols-2  gap-2">
+    <Card className="border-slate-200/80 bg-white shadow-[0_12px_36px_rgba(15,23,42,0.06)]">
+      <div className="mb-5 grid grid-cols-1 gap-3 p-4 sm:grid-cols-2">
         {addressList && addressList.length > 0 ? (
           addressList.map((singleAddressItem) => (
             <AddressCard
+              key={singleAddressItem?._id}
               selectedId={selectedId}
               handleDeleteAddress={handleDeleteAddress}
               addressInfo={singleAddressItem}
@@ -124,16 +124,16 @@ function Address({ setCurrentSelectedAddress, selectedId }) {
             />
           ))
         ) : (
-          <div className="flex flex-col items-center justify-center py-10">
-            <p className="text-lg font-bold">No Address Found</p>
-            <p className="text-sm text-gray-500 mt-1">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-10 text-center sm:col-span-2">
+            <p className="text-lg font-semibold text-slate-950">No address found</p>
+            <p className="mt-1 text-sm text-slate-500">
               Please add an address below
             </p>
           </div>
         )}
       </div>
-      <CardHeader>
-        <CardTitle className="font-bold">
+      <CardHeader className="border-t border-slate-100">
+        <CardTitle className="font-black tracking-tight text-slate-950">
           {currentEditedId !== null ? "Edit Address" : "Add New Address"}
         </CardTitle>
       </CardHeader>

@@ -2,6 +2,8 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
+import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -18,26 +20,44 @@ function CommonForm({
   onSubmit,
   isBtnDisabled,
 }) {
+  const [showPassword, setShowPassword] = useState(false);
+
   function renderInputsByComponentType(getControlItem) {
     let element = null;
     const value = formData[getControlItem.name] || "";
 
     switch (getControlItem.componentType) {
       case "input":
+        const isPasswordField = getControlItem.type === "password";
         element = (
-          <Input
-            name={getControlItem.name}
-            placeholder={getControlItem.placeholder}
-            id={getControlItem.id}
-            type={getControlItem.type}
-            value={value}
-            onChange={(event) =>
-              setFormData({
-                ...formData,
-                [getControlItem.name]: event.target.value,
-              })
-            }
-          />
+          <div className="relative">
+            <Input
+              name={getControlItem.name}
+              placeholder={getControlItem.placeholder}
+              id={getControlItem.id}
+              type={isPasswordField && showPassword ? "text" : getControlItem.type}
+              value={value}
+              onChange={(event) =>
+                setFormData({
+                  ...formData,
+                  [getControlItem.name]: event.target.value,
+                })
+              }
+              className={isPasswordField ? "pr-11" : ""}
+            />
+            {isPasswordField ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-950"
+                onClick={() => setShowPassword((current) => !current)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+            ) : null}
+          </div>
         );
         break;
       case "select":

@@ -44,7 +44,6 @@ function ProductImageUpload({
       inputRef.current.value = "";
     }
   }
-  console.log(imageFile);
 
   async function uploadImageToCloudinary() {
     setImageLoadingState(true);
@@ -54,7 +53,6 @@ function ProductImageUpload({
       "http://localhost:5000/api/admin/products/upload-image",
       data
     );
-    console.log(response, "response");
     if (response?.data?.success) {
       setUploadedImageUrl(response.data.result.url);
       setImageLoadingState(false);
@@ -69,14 +67,16 @@ function ProductImageUpload({
   }, [imageFile]);
 
   return (
-    <div className="w-full max-w-md mx-auto mt-4">
-      <Label className="text-lg font-semibold mb-2 block">Upload Image</Label>
+    <div className="mx-auto mt-2 w-full max-w-md rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50 p-4">
+      <Label className="mb-2 block text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
+        Upload Image
+      </Label>
       <div
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         className={`${
           isEditMode ? "opacity-60" : ""
-        } border-2 border-dashed rounded-lg p-4`}
+        } rounded-[1.25rem] border border-dashed border-slate-300 bg-white p-4 shadow-sm`}
       >
         <Input
           id="image-upload"
@@ -92,23 +92,31 @@ function ProductImageUpload({
             htmlFor="image-upload"
             className={`${
               isEditMode ? "cursor-not-allowed" : ""
-            } flex flex-col items-center h-32 cursor-pointer`}
+            } flex h-40 cursor-pointer flex-col items-center justify-center gap-3 rounded-[1rem] text-center`}
           >
-            <UploadCloudIcon className="w-10 h-10 text-muted-foreground mb-2" />
-            <span>Drag & drop or Click to upload</span>
+            <span className="grid h-14 w-14 place-items-center rounded-2xl bg-slate-950 text-white shadow-lg shadow-slate-950/15">
+              <UploadCloudIcon className="h-7 w-7" />
+            </span>
+            <span className="text-sm font-medium text-slate-700">Drag and drop or click to upload</span>
           </Label>
         ) : imageLoadingState ? (
-          <Skeleton className="h-10 bg-gray-100" />
+          <Skeleton className="h-14 rounded-[1rem] bg-slate-200" />
         ) : (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <FileIcon className="w-8 text-primary mr-2 h-8" />
+          <div className="flex items-center justify-between gap-4 rounded-[1rem] border border-slate-100 bg-slate-50 p-3">
+            <div className="flex items-center gap-3">
+              <span className="grid h-11 w-11 place-items-center rounded-xl bg-slate-950 text-white">
+                <FileIcon className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-slate-950">Selected image</p>
+                <p className="text-xs text-slate-500">Ready to upload</p>
+              </div>
             </div>
-            <p className="text-sm font-medium ">{imageFile.name}</p>
+            <p className="max-w-[10rem] truncate text-sm font-medium text-slate-700">{imageFile.name}</p>
             <Button
               variant="ghost"
               size="icon"
-              className="text-muted-foreground hover:text-foreground"
+              className="rounded-full text-slate-500 hover:bg-rose-50 hover:text-rose-600"
               onClick={handleRemoveImage}
             >
               <XIcon className="w-4 h-4" />

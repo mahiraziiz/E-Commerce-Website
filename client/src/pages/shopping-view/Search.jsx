@@ -25,16 +25,18 @@ function SearchProducts() {
   const { cartItems } = useSelector((state) => state.shopCart);
   const { toast } = useToast();
   useEffect(() => {
-    if (keyword && keyword.trim() !== "" && keyword.trim().length > 3) {
-      setTimeout(() => {
+    const debounceTimer = setTimeout(() => {
+      if (keyword && keyword.trim() !== "" && keyword.trim().length > 3) {
         setSearchParams(new URLSearchParams(`?keyword=${keyword}`));
         dispatch(getSearchResults(keyword));
-      }, 1000);
-    } else {
-      setSearchParams(new URLSearchParams(`?keyword=${keyword}`));
-      dispatch(resetSearchResults());
-    }
-  }, [keyword]);
+      } else {
+        setSearchParams(new URLSearchParams(`?keyword=${keyword}`));
+        dispatch(resetSearchResults());
+      }
+    }, 500);
+
+    return () => clearTimeout(debounceTimer);
+  }, [keyword, dispatch, setSearchParams]);
 
   function handleAddtoCart(getCurrentProductId, getTotalStock) {
     console.log(cartItems);
@@ -85,24 +87,27 @@ function SearchProducts() {
   console.log(searchResults, "searchResults");
 
   return (
-    <div className="container mx-auto md:px-6 px-4 py-8">
-      <div className="flex justify-center mb-8">
-        <div className="w-full flex items-center">
+    <div className="container mx-auto px-4 py-8 md:px-6">
+      <div className="mb-8 rounded-[1.5rem] border border-slate-200/80 bg-white p-4 shadow-[0_12px_36px_rgba(15,23,42,0.06)]">
+        <div className="flex items-center gap-3">
           <Input
             value={keyword}
             name="keyword"
             onChange={(event) => setKeyword(event.target.value)}
-            className="py-6"
-            placeholder="Search Products..."
+            className="h-12 rounded-2xl border-slate-200 bg-slate-50 px-4"
+            placeholder="Search products, brands, and categories..."
           />
         </div>
       </div>
       {!searchResults.length ? (
-        <h1 className="text-5xl font-extrabold">No result found!</h1>
+        <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-white p-10 text-center text-slate-500">
+          No results found.
+        </div>
       ) : null}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {searchResults.map((item) => (
           <ShoppingProductTile
+            key={item._id}
             handleAddtoCart={handleAddtoCart}
             product={item}
             handleGetProductDetails={handleGetProductDetails}

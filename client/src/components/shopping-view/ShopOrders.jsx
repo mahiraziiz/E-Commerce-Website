@@ -37,15 +37,13 @@ function ShoppingOrders() {
     if (orderDetails !== null) setOpenDetailsDialog(true);
   }, [orderDetails]);
 
-  console.log(orderDetails, "orderDetails");
-  console.log(orderList, "orderList");
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Order History</CardTitle>
+    <Card className="border-slate-200/80 bg-white shadow-[0_12px_36px_rgba(15,23,42,0.06)]">
+      <CardHeader className="border-b border-slate-100 bg-slate-50/60">
+        <CardTitle className="text-2xl font-black tracking-tight text-slate-950">Order history</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -61,23 +59,23 @@ function ShoppingOrders() {
           <TableBody>
             {orderList && orderList.length > 0
               ? orderList.map((orderItem) => (
-                  <TableRow>
-                    <TableCell>{orderItem?._id}</TableCell>
+                  <TableRow key={orderItem?._id} className="hover:bg-slate-50/80">
+                    <TableCell className="font-medium text-slate-700">{orderItem?._id}</TableCell>
                     <TableCell>{orderItem?.createdAt.split("T")[0]}</TableCell>
                     <TableCell>
                       <Badge
-                        className={`py-1 px-3 ${
+                        className={`rounded-full px-3 py-1 text-white ${
                           orderItem?.orderStatus === "confirmed"
-                            ? "bg-green-500"
+                            ? "bg-emerald-500"
                             : orderItem?.orderStatus === "rejected"
-                            ? "bg-red-600"
-                            : "bg-black"
+                            ? "bg-rose-500"
+                            : "bg-slate-900"
                         }`}
                       >
                         {orderItem?.orderStatus}
                       </Badge>
                     </TableCell>
-                    <TableCell>${orderItem?.totalAmount}</TableCell>
+                    <TableCell className="font-semibold text-slate-950">${orderItem?.totalAmount}</TableCell>
                     <TableCell>
                       <Dialog
                         open={openDetailsDialog}
@@ -90,6 +88,7 @@ function ShoppingOrders() {
                           onClick={() =>
                             handleFetchOrderDetails(orderItem?._id)
                           }
+                          className="rounded-full bg-sky-600 text-white hover:bg-sky-500"
                         >
                           View Details
                         </Button>
@@ -98,9 +97,16 @@ function ShoppingOrders() {
                     </TableCell>
                   </TableRow>
                 ))
-              : null}
+              : (
+                <TableRow>
+                  <TableCell colSpan={5} className="py-16 text-center text-slate-500">
+                    No orders yet.
+                  </TableCell>
+                </TableRow>
+              )}
           </TableBody>
         </Table>
+        </div>
       </CardContent>
     </Card>
   );

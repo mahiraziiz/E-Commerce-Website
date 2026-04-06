@@ -1,5 +1,6 @@
 import ProductImageUpload from "@/components/admin-view/AdminImageUpload";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   addFeatureImage,
   getFeatureImages,
@@ -13,8 +14,6 @@ function AdminDashboard() {
   const [imageLoadingState, setImageLoadingState] = useState(false);
   const dispatch = useDispatch();
   const { featureImageList } = useSelector((state) => state.commonFeature);
-
-  console.log(uploadedImageUrl, "uploadedImageUrl");
 
   function handleUploadFeatureImage() {
     dispatch(addFeatureImage(uploadedImageUrl)).then((data) => {
@@ -30,34 +29,78 @@ function AdminDashboard() {
     dispatch(getFeatureImages());
   }, [dispatch]);
 
-  console.log(featureImageList, "featureImageList");
-
   return (
-    <div>
-      <ProductImageUpload
-        imageFile={imageFile}
-        setImageFile={setImageFile}
-        uploadedImageUrl={uploadedImageUrl}
-        setUploadedImageUrl={setUploadedImageUrl}
-        setImageLoadingState={setImageLoadingState}
-        imageLoadingState={imageLoadingState}
-        isCustomStyling={true}
-        // isEditMode={currentEditedId !== null}
-      />
-      <Button onClick={handleUploadFeatureImage} className="mt-5 w-full">
-        Upload
-      </Button>
-      <div className="flex flex-col gap-4 mt-5">
+    <div className="space-y-6">
+      <div className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
+        <Card className="border-slate-200/80 bg-slate-950 text-white shadow-[0_18px_60px_rgba(15,23,42,0.12)]">
+          <CardContent className="flex h-full flex-col justify-between gap-6 p-6 sm:p-8">
+            <div className="space-y-3">
+              <span className="inline-flex rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-amber-200">
+                Feature banner manager
+              </span>
+              <h1 className="max-w-2xl text-3xl font-black tracking-tight sm:text-4xl">
+                Keep the storefront banner current without leaving the admin panel.
+              </h1>
+              <p className="max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+                Upload and publish the featured image shown on the home page with a workflow that stays fast and simple.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Focus</p>
+                <p className="mt-2 text-sm font-semibold">Promotions and launches</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Speed</p>
+                <p className="mt-2 text-sm font-semibold">Instant visual updates</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Control</p>
+                <p className="mt-2 text-sm font-semibold">Keep the homepage alive</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-slate-200/80 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
+          <CardContent className="p-6 sm:p-8">
+            <ProductImageUpload
+              imageFile={imageFile}
+              setImageFile={setImageFile}
+              uploadedImageUrl={uploadedImageUrl}
+              setUploadedImageUrl={setUploadedImageUrl}
+              setImageLoadingState={setImageLoadingState}
+              imageLoadingState={imageLoadingState}
+              isCustomStyling={true}
+            />
+            <Button onClick={handleUploadFeatureImage} className="mt-6 h-11 w-full rounded-2xl bg-slate-950 text-white shadow-lg shadow-slate-950/15 hover:bg-slate-800">
+              Publish banner
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {featureImageList && featureImageList.length > 0
           ? featureImageList.map((featureImgItem) => (
-              <div className="relative">
+              <div
+                key={featureImgItem._id || featureImgItem.image}
+                className="overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white shadow-[0_12px_40px_rgba(15,23,42,0.06)]"
+              >
                 <img
                   src={featureImgItem.image}
-                  className="w-full h-[300px] object-cover rounded-t-lg"
+                  className="h-56 w-full object-cover transition-transform duration-500 hover:scale-[1.02]"
                 />
               </div>
             ))
-          : null}
+          : (
+            <Card className="border-dashed border-slate-200 bg-white md:col-span-2 xl:col-span-3">
+              <CardContent className="flex min-h-[220px] flex-col items-center justify-center text-center">
+                <p className="text-lg font-semibold text-slate-900">No feature banners yet</p>
+                <p className="mt-2 max-w-md text-sm text-slate-600">
+                  Upload your first hero image to give the store homepage a stronger visual identity.
+                </p>
+              </CardContent>
+            </Card>
+          )}
       </div>
     </div>
   );

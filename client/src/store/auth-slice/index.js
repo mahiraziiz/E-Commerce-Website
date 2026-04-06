@@ -9,28 +9,43 @@ const initialState = {
 
 export const registerUser = createAsyncThunk(
   "/auth/register",
-  async (formData) => {
-    const response = await axios.post(
-      "http://localhost:5000/api/auth/register",
-      formData,
-      {
-        withCredentials: true,
-      }
-    );
-    return response.data;
+  async (formData, thunkAPI) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/auth/register",
+        formData,
+        {
+          withCredentials: true,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error?.response?.data?.message || "Registration failed"
+      );
+    }
   }
 );
 
-export const loginUser = createAsyncThunk("/auth/login", async (formData) => {
-  const response = await axios.post(
-    "http://localhost:5000/api/auth/login",
-    formData,
-    {
-      withCredentials: true,
+export const loginUser = createAsyncThunk(
+  "/auth/login",
+  async (formData, thunkAPI) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/auth/login",
+        formData,
+        {
+          withCredentials: true,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error?.response?.data?.message || "Login failed"
+      );
     }
-  );
-  return response.data;
-});
+  }
+);
 
 export const logoutUser = createAsyncThunk("/auth/logout", async () => {
   const response = await axios.post(

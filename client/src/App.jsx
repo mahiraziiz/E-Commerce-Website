@@ -1,11 +1,12 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Route, Routes } from "react-router-dom";
-import { Skeleton } from "./components/ui/skeleton";
 import { checkAuth } from "./store/auth-slice";
 import CheckAuth from "./components/common/CheckAuth";
 import AuthLogin from "./pages/auth/Login";
 import AuthRegister from "./pages/auth/Register";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 import AdminDashboard from "./pages/admin-view/Dashboard";
 import AdminProducts from "./pages/admin-view/Products";
 import AdminOrders from "./pages/admin-view/Orders";
@@ -22,6 +23,7 @@ import UnauthPage from "./pages/unauth-page/Index";
 import AuthLayout from "./components/auth/Layout";
 import AdminLayout from "./components/admin-view/AdminLayout";
 import PageNotFound from "./pages/page-not-found/PageNotFound";
+import PageLoader from "./components/common/PageLoader";
 
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector(
@@ -33,9 +35,7 @@ function App() {
     dispatch(checkAuth());
   }, [dispatch]);
 
-  if (isLoading) return <Skeleton className="w-[800] bg-black h-[600px]" />;
-
-  console.log(isLoading, user);
+  if (isLoading) return <PageLoader />;
 
   return (
     <div className="flex flex-col overflow-hidden bg-white">
@@ -59,6 +59,8 @@ function App() {
         >
           <Route path="login" element={<AuthLogin />} />
           <Route path="register" element={<AuthRegister />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="reset-password/:token" element={<ResetPassword />} />
         </Route>
         <Route
           path="/admin"
