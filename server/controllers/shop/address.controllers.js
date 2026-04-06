@@ -2,20 +2,49 @@ import { Address } from "../../models/address.models.js";
 
 const addAddress = async (req, res) => {
   try {
-    const { userId, address, city, pincode, phone, notes } = req.body;
-    if (!userId || !address || !city || !pincode || !phone || !notes) {
-      return res
-        .status(400)
-        .json({ success: false, message: "All fields are required" });
+    const {
+      userId,
+      name,
+      addressLine1,
+      addressLine2,
+      city,
+      state,
+      pincode,
+      country,
+      countryCode,
+      phone,
+      notes,
+    } = req.body;
+
+    if (
+      !userId ||
+      !name ||
+      !addressLine1 ||
+      !city ||
+      !state ||
+      !pincode ||
+      !country ||
+      !countryCode ||
+      !phone
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, Address, City, State, PIN, Country, Country Code, and Phone are required",
+      });
     }
 
     const newAddress = new Address({
       userId,
-      address,
+      name,
+      addressLine1,
+      addressLine2: addressLine2 || "",
       city,
+      state,
       pincode,
+      country,
+      countryCode,
       phone,
-      notes,
+      notes: notes || "",
     });
 
     await newAddress.save();

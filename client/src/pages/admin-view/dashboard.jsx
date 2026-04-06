@@ -4,7 +4,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   addFeatureImage,
   getFeatureImages,
+  deleteFeatureImage,
 } from "@/store/common-slice/index.js";
+import { Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -21,6 +23,14 @@ function AdminDashboard() {
         dispatch(getFeatureImages());
         setImageFile(null);
         setUploadedImageUrl("");
+      }
+    });
+  }
+
+  function handleDeleteFeatureImage(id) {
+    dispatch(deleteFeatureImage(id)).then((data) => {
+      if (data?.payload?.success) {
+        dispatch(getFeatureImages());
       }
     });
   }
@@ -72,8 +82,13 @@ function AdminDashboard() {
               imageLoadingState={imageLoadingState}
               isCustomStyling={true}
             />
-            <Button onClick={handleUploadFeatureImage} className="mt-6 h-11 w-full rounded-2xl bg-slate-950 text-white shadow-lg shadow-slate-950/15 hover:bg-slate-800">
-              Publish banner
+            <Button 
+              onClick={handleUploadFeatureImage} 
+              disabled={!uploadedImageUrl || imageLoadingState}
+              className="mt-6 h-11 w-full rounded-2xl bg-slate-950 text-white shadow-lg shadow-slate-950/15 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-slate-950"
+              title={!uploadedImageUrl ? "Please upload an image first" : ""}
+            >
+              {imageLoadingState ? "Publishing..." : "Publish banner"}
             </Button>
           </CardContent>
         </Card>
@@ -83,12 +98,19 @@ function AdminDashboard() {
           ? featureImageList.map((featureImgItem) => (
               <div
                 key={featureImgItem._id || featureImgItem.image}
-                className="overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white shadow-[0_12px_40px_rgba(15,23,42,0.06)]"
+                className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white shadow-[0_12px_40px_rgba(15,23,42,0.06)]"
               >
                 <img
                   src={featureImgItem.image}
-                  className="h-56 w-full object-cover transition-transform duration-500 hover:scale-[1.02]"
+                  className="h-56 w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                 />
+                <Button
+                  onClick={() => handleDeleteFeatureImage(featureImgItem._id)}
+                  className="absolute right-3 top-3 h-8 w-8 rounded-full bg-rose-50 p-0 text-rose-600 shadow-lg opacity-0 transition-opacity hover:bg-rose-100 group-hover:opacity-100"
+                  title="Remove banner"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
             ))
           : (

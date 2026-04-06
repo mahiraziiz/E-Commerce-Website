@@ -29,6 +29,17 @@ export const addFeatureImage = createAsyncThunk(
   }
 );
 
+export const deleteFeatureImage = createAsyncThunk(
+  "/order/deleteFeatureImage",
+  async (id) => {
+    const response = await axios.delete(
+      `http://localhost:5000/api/common/feature/delete/${id}`
+    );
+
+    return response.data;
+  }
+);
+
 const commonSlice = createSlice({
   name: "commonSlice",
   initialState,
@@ -45,6 +56,15 @@ const commonSlice = createSlice({
       .addCase(getFeatureImages.rejected, (state) => {
         state.isLoading = false;
         state.featureImageList = [];
+      })
+      .addCase(deleteFeatureImage.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(deleteFeatureImage.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(deleteFeatureImage.rejected, (state) => {
+        state.isLoading = false;
       });
   },
 });

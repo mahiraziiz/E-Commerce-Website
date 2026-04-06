@@ -1,7 +1,7 @@
 import ProductImageUpload from "@/components/admin-view/AdminImageUpload";
 import AdminProductTile from "@/components/admin-view/AdminProductTile";
 import CommonForm from "@/components/common/Form";
-import { addProductFormElements } from "@/config";
+import { addProductFormElements, brandsByCategory } from "@/config";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -17,7 +17,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useDispatch, useSelector } from "react-redux";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useToast } from "@/hooks/useToast.js";
 
 const initialFormData = {
@@ -45,6 +45,21 @@ function AdminProducts() {
 
   const productCount = productList?.length || 0;
 
+  // Generate form controls with dynamically filtered brands based on selected category
+  const dynamicFormControls = useMemo(() => {
+    return addProductFormElements.map((control) => {
+      if (control.name === "brand") {
+        const selectedCategory = formData.category;
+        const brandOptions =
+          selectedCategory && brandsByCategory[selectedCategory]
+            ? brandsByCategory[selectedCategory]
+            : [];
+        return { ...control, options: brandOptions };
+      }
+      return control;
+    });
+  }, [formData.category]);
+
   function onSubmit(event) {
     event.preventDefault();
 
@@ -56,7 +71,7 @@ function AdminProducts() {
               ...formData,
               image: formData.image || formData.images?.[0] || null,
             },
-          })
+          }),
         ).then((data) => {
           if (data?.payload?.success) {
             dispatch(fetchAllProducts());
@@ -72,7 +87,7 @@ function AdminProducts() {
             ...formData,
             image: formData.image || uploadedImages[0] || null,
             images: uploadedImages,
-          })
+          }),
         ).then((data) => {
           if (data?.payload?.success) {
             setOpenCreateProductDialog(false);
@@ -114,17 +129,25 @@ function AdminProducts() {
             Products
           </h1>
           <p className="max-w-2xl text-sm text-slate-600">
-            Add, edit, and manage the store catalog from a cleaner, faster workspace.
+            Add, edit, and manage the store catalog from a cleaner, faster
+            workspace.
           </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[22rem]">
           <Card className="border-white/70 bg-white/80">
             <CardContent className="p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Total products</p>
-              <p className="mt-2 text-3xl font-black text-slate-950">{productCount}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                Total products
+              </p>
+              <p className="mt-2 text-3xl font-black text-slate-950">
+                {productCount}
+              </p>
             </CardContent>
           </Card>
-          <Button onClick={() => setOpenCreateProductDialog(true)} className="h-full rounded-2xl bg-slate-950 px-5 text-white shadow-lg shadow-slate-950/20 hover:bg-slate-800">
+          <Button
+            onClick={() => setOpenCreateProductDialog(true)}
+            className="h-full rounded-2xl bg-slate-950 px-5 text-white shadow-lg shadow-slate-950/20 hover:bg-slate-800"
+          >
             Add product
           </Button>
         </div>
@@ -157,7 +180,10 @@ function AdminProducts() {
           }
         }}
       >
-        <SheetContent side="right" className="overflow-auto border-l-0 bg-slate-50 p-4 sm:w-[28rem] sm:max-w-[28rem]">
+        <SheetContent
+          side="right"
+          className="overflow-auto border-l-0 bg-slate-50 p-4 sm:w-[28rem] sm:max-w-[28rem]"
+        >
           <SheetHeader>
             <SheetTitle>
               {currentEditedId !== null ? "Edited Product" : "Add New Product"}
@@ -176,7 +202,7 @@ function AdminProducts() {
           />
           <div className="py-6">
             <CommonForm
-              formControls={addProductFormElements}
+              formControls={dynamicFormControls}
               formData={formData}
               setFormData={setFormData}
               buttonText={currentEditedId !== null ? "Edit" : "Add"}

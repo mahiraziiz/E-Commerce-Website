@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { countryAndCodeMap } from "@/config";
 
 function CommonForm({
   formControls,
@@ -27,7 +28,7 @@ function CommonForm({
     const value = formData[getControlItem.name] || "";
 
     switch (getControlItem.componentType) {
-      case "input":
+      case "input": {
         const isPasswordField = getControlItem.type === "password";
         element = (
           <div className="relative">
@@ -35,7 +36,9 @@ function CommonForm({
               name={getControlItem.name}
               placeholder={getControlItem.placeholder}
               id={getControlItem.id}
-              type={isPasswordField && showPassword ? "text" : getControlItem.type}
+              type={
+                isPasswordField && showPassword ? "text" : getControlItem.type
+              }
               value={value}
               onChange={(event) =>
                 setFormData({
@@ -54,21 +57,61 @@ function CommonForm({
                 onClick={() => setShowPassword((current) => !current)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
               </Button>
             ) : null}
           </div>
         );
         break;
+      }
+      case "phone-with-country": {
+        const countryCodeValueFromMap =
+          formData[getControlItem.countryCodeName] || "";
+        const phoneValueInput = formData[getControlItem.name] || "";
+        element = (
+          <div className="flex gap-2 items-center">
+            <div className="px-3 py-2 border border-slate-200 rounded-md bg-slate-50 text-slate-700 font-medium min-w-max">
+              {countryCodeValueFromMap || "+"}
+            </div>
+            <Input
+              name={getControlItem.name}
+              placeholder={getControlItem.placeholder}
+              id={getControlItem.id}
+              type="tel"
+              value={phoneValueInput}
+              onChange={(event) =>
+                setFormData({
+                  ...formData,
+                  [getControlItem.name]: event.target.value,
+                })
+              }
+              className="flex-1"
+            />
+          </div>
+        );
+        break;
+      }
       case "select":
         element = (
           <Select
-            onValueChange={(value) =>
-              setFormData({
+            onValueChange={(value) => {
+              const updatedFormData = {
                 ...formData,
                 [getControlItem.name]: value,
-              })
-            }
+              };
+              // Auto-set country code when country is selected
+              if (
+                getControlItem.name === "country" &&
+                countryAndCodeMap[value]
+              ) {
+                updatedFormData.countryCode = countryAndCodeMap[value];
+              }
+              setFormData(updatedFormData);
+            }}
             value={value}
           >
             <SelectTrigger className="w-full">
