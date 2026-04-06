@@ -3,6 +3,10 @@ import mongoose from "mongoose";
 const ProductSchema = new mongoose.Schema(
   {
     image: String,
+    images: {
+      type: [String],
+      default: [],
+    },
     title: String,
     description: String,
     category: String,

@@ -8,12 +8,18 @@ function ShoppingProductTile({
   handleGetProductDetails,
   handleAddtoCart,
 }) {
+  const productImages = product?.images?.length
+    ? product.images
+    : product?.image
+    ? [product.image]
+    : [];
+
   return (
     <Card className="group w-full max-w-sm overflow-hidden rounded-[1.5rem] border-slate-200/80 bg-white shadow-[0_12px_36px_rgba(15,23,42,0.06)] transition-all hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
       <div onClick={() => handleGetProductDetails(product?._id)} className="cursor-pointer">
         <div className="relative overflow-hidden">
           <img
-            src={product?.image}
+            src={productImages[0]}
             alt={product?.title}
             className="h-[280px] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />
@@ -33,6 +39,23 @@ function ShoppingProductTile({
         </div>
         <CardContent className="space-y-3 p-4">
           <h2 className="line-clamp-2 text-lg font-semibold tracking-tight text-slate-950">{product?.title}</h2>
+          {productImages.length > 1 ? (
+            <div className="flex gap-2 overflow-hidden">
+              {productImages.slice(0, 3).map((imageUrl) => (
+                <img
+                  key={imageUrl}
+                  src={imageUrl}
+                  alt={product?.title}
+                  className="h-12 w-12 rounded-xl border border-slate-200 object-cover"
+                />
+              ))}
+              {productImages.length > 3 ? (
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-500">
+                  +{productImages.length - 3}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
           <div className="flex items-center justify-between gap-3">
             <span className="text-sm text-slate-500">
               {categoryOptionsMap[product?.category]}

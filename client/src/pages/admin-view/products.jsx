@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/useToast.js";
 
 const initialFormData = {
   image: null,
+  images: [],
   title: "",
   description: "",
   category: "",
@@ -35,7 +36,7 @@ function AdminProducts() {
   const [openCreateProductDialog, setOpenCreateProductDialog] = useState(false);
   const [formData, setFormData] = useState(initialFormData);
   const [imageFile, setImageFile] = useState(null);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState("");
+  const [uploadedImages, setUploadedImages] = useState([]);
   const [imageLoadingState, setImageLoadingState] = useState(false);
   const [currentEditedId, setCurrentEditedId] = useState(null);
   const { productList } = useSelector((state) => state.adminProducts);
@@ -51,7 +52,10 @@ function AdminProducts() {
       ? dispatch(
           editProduct({
             id: currentEditedId,
-            formData,
+            formData: {
+              ...formData,
+              image: formData.image || formData.images?.[0] || null,
+            },
           })
         ).then((data) => {
           if (data?.payload?.success) {
@@ -59,17 +63,21 @@ function AdminProducts() {
             setFormData(initialFormData);
             setOpenCreateProductDialog(false);
             setCurrentEditedId(null);
+            setImageFile(null);
+            setUploadedImages([]);
           }
         })
       : dispatch(
           addNewProduct({
             ...formData,
-            image: uploadedImageUrl,
+            image: formData.image || uploadedImages[0] || null,
+            images: uploadedImages,
           })
         ).then((data) => {
           if (data?.payload?.success) {
             setOpenCreateProductDialog(false);
             setImageFile(null);
+            setUploadedImages([]);
             setFormData(initialFormData);
             toast({
               title: "Product added successfully",
@@ -129,6 +137,8 @@ function AdminProducts() {
                 setOpenCreateProductDialog={setOpenCreateProductDialog}
                 setFormData={setFormData}
                 setCurrentEditedId={setCurrentEditedId}
+                setImageFile={setImageFile}
+                setUploadedImages={setUploadedImages}
                 product={productItem}
                 handleDelete={handleDelete}
               />
@@ -143,7 +153,7 @@ function AdminProducts() {
             setCurrentEditedId(null);
             setFormData(initialFormData);
             setImageFile(null);
-            setUploadedImageUrl("");
+            setUploadedImages([]);
           }
         }}
       >
@@ -156,11 +166,13 @@ function AdminProducts() {
           <ProductImageUpload
             imageFile={imageFile}
             setImageFile={setImageFile}
-            uploadedImageUrl={uploadedImageUrl}
-            setUploadedImageUrl={setUploadedImageUrl}
+            uploadedImages={uploadedImages}
+            setUploadedImages={setUploadedImages}
             imageLoadingState={imageLoadingState}
             setImageLoadingState={setImageLoadingState}
             isEditMode={currentEditedId !== null}
+            formData={formData}
+            setFormData={setFormData}
           />
           <div className="py-6">
             <CommonForm

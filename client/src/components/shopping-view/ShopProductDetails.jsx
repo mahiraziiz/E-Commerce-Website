@@ -103,17 +103,40 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
         reviews.length
       : 0;
 
+  const productImages = productDetails?.images?.length
+    ? productDetails.images
+    : productDetails?.image
+    ? [productDetails.image]
+    : [];
+
   return (
     <Dialog open={open} onOpenChange={handleDialogClose}>
       <DialogContent className="grid max-w-[90vw] gap-8 rounded-[1.75rem] border-slate-200/80 bg-white p-6 sm:max-w-[80vw] sm:p-10 lg:max-w-[68vw] lg:grid-cols-2">
-        <div className="relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-slate-50">
-          <img
-            src={productDetails?.image}
-            alt={productDetails?.title}
-            width={600}
-            height={600}
-            className="aspect-square w-full object-cover"
-          />
+        <div className="space-y-4">
+          <div className="relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-slate-50">
+            <img
+              src={productImages[0]}
+              alt={productDetails?.title}
+              width={600}
+              height={600}
+              className="aspect-square w-full object-cover"
+            />
+          </div>
+          {productImages.length > 1 ? (
+            <div className="grid grid-cols-4 gap-3">
+              {productImages.slice(0, 4).map((imageUrl, index) => (
+                <button
+                  key={imageUrl}
+                  type="button"
+                  className={`overflow-hidden rounded-2xl border transition hover:opacity-90 ${
+                    index === 0 ? "border-sky-400 ring-2 ring-sky-100" : "border-slate-200"
+                  }`}
+                >
+                  <img src={imageUrl} alt={productDetails?.title} className="h-20 w-full object-cover" />
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
         <div className="space-y-5">
           <div>

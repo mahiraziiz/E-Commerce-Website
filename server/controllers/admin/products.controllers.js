@@ -24,6 +24,7 @@ const addProduct = async (req, res) => {
   try {
     const {
       image,
+      images,
       title,
       description,
       category,
@@ -34,6 +35,7 @@ const addProduct = async (req, res) => {
     } = req.body;
     const newlyCreatedProduct = new Product({
       image,
+      images: Array.isArray(images) ? images : image ? [image] : [],
       title,
       description,
       category,
@@ -79,6 +81,7 @@ const editProduct = async (req, res) => {
     const { id } = req.params;
     const {
       image,
+      images,
       title,
       description,
       category,
@@ -103,7 +106,12 @@ const editProduct = async (req, res) => {
     findProduct.salePrice =
       salePrice === "" ? 0 : salePrice || findProduct.salePrice;
     findProduct.totalStock = totalStock || findProduct.totalStock;
-    findProduct.image = image || findProduct.image;
+    findProduct.images = Array.isArray(images)
+      ? images
+      : image
+      ? [image]
+      : findProduct.images || [];
+    findProduct.image = image || findProduct.images?.[0] || findProduct.image;
 
     await findProduct.save();
     return res.status(200).json({
