@@ -17,6 +17,7 @@ import ShoppingListing from "./pages/shopping-view/Listing";
 import ShoppingCheckout from "./pages/shopping-view/Checkout";
 import ShoppingAccount from "./pages/shopping-view/Account";
 import PaypalReturnPage from "./pages/shopping-view/PaypalReturn";
+import PaypalCancelPage from "./pages/shopping-view/PaypalCancel";
 import PaymentSuccessPage from "./pages/shopping-view/PaymentSuccess";
 import SearchProducts from "./pages/shopping-view/Search";
 import UnauthPage from "./pages/unauth-page/Index";
@@ -88,6 +89,8 @@ function App() {
           <Route path="checkout" element={<ShoppingCheckout />} />
           <Route path="account" element={<ShoppingAccount />} />
           <Route path="paypal-return" element={<PaypalReturnPage />} />
+          <Route path="paypal-cancel" element={<PaypalCancelPage />} />
+          <Route path="payment-cancel" element={<PaypalCancelPage />} />
           <Route path="payment-success" element={<PaymentSuccessPage />} />
           <Route path="search" element={<SearchProducts />} />
         </Route>

@@ -73,7 +73,7 @@ function CommonForm({
           formData[getControlItem.countryCodeName] || "";
         const phoneValueInput = formData[getControlItem.name] || "";
         element = (
-          <div className="flex gap-2 items-center">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="px-3 py-2 border border-slate-200 rounded-md bg-slate-50 text-slate-700 font-medium min-w-max">
               {countryCodeValueFromMap || "+"}
             </div>

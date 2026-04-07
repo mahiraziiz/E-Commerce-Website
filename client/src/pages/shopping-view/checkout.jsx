@@ -7,6 +7,11 @@ import { useEffect, useState } from "react";
 import { createNewOrder } from "@/store/shop/order-slice";
 import { useToast } from "@/hooks/useToast";
 
+const usdFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+});
+
 function ShoppingCheckout() {
   const { cartItems } = useSelector((state) => state.shopCart);
   const { user } = useSelector((state) => state.auth);
@@ -91,6 +96,10 @@ function ShoppingCheckout() {
         setIsPaymemntStart(true);
       } else {
         setIsPaymemntStart(false);
+        toast({
+          title: data?.payload?.message || "Unable to start PayPal payment.",
+          variant: "destructive",
+        });
       }
     });
   }
@@ -113,7 +122,7 @@ function ShoppingCheckout() {
           </div>
         </div>
       </div>
-      <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-5 px-4 py-5 sm:grid-cols-2 md:px-6 lg:px-8">
+      <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-5 px-4 py-5 md:px-6 lg:grid-cols-2 lg:px-8">
         <Address
           selectedId={currentSelectedAddress}
           setCurrentSelectedAddress={setCurrentSelectedAddress}
@@ -127,7 +136,9 @@ function ShoppingCheckout() {
           <div className="mt-4 space-y-4 rounded-2xl bg-sky-50 p-4">
             <div className="flex justify-between text-slate-700">
               <span className="font-medium">Total</span>
-              <span className="font-black text-slate-950">${totalCartAmount}</span>
+              <span className="font-black text-slate-950">
+                {usdFormatter.format(totalCartAmount)}
+              </span>
             </div>
           </div>
           <div className="mt-4 w-full">

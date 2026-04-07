@@ -29,7 +29,8 @@ const addAddress = async (req, res) => {
     ) {
       return res.status(400).json({
         success: false,
-        message: "Name, Address, City, State, PIN, Country, Country Code, and Phone are required",
+        message:
+          "Name, Address, City, State, PIN, Country, Country Code, and Phone are required",
       });
     }
 
@@ -70,7 +71,7 @@ const fetchAllAddress = async (req, res) => {
     }
 
     const addresses = await Address.find({ userId });
-    console.log(addresses, "address to yahi hai")
+    console.log(addresses, "address to yahi hai");
     if (!addresses) {
       return res
         .status(404)
@@ -105,7 +106,7 @@ const editAddress = async (req, res) => {
         userId,
       },
       formData,
-      { new: true }
+      { new: true },
     );
     if (!updatedAddress) {
       return res

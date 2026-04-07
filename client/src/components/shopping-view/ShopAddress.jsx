@@ -130,52 +130,55 @@ function Address({ setCurrentSelectedAddress, selectedId }) {
   }, [dispatch]);
 
   return (
-    <Card className="border-slate-200/80 bg-white shadow-[0_12px_36px_rgba(15,23,42,0.06)]">
-      <CardHeader className="border-b border-slate-100 bg-gradient-to-r from-sky-50 via-white to-cyan-50">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <CardTitle className="font-black tracking-tight text-slate-950">
+    <Card className="gap-0 overflow-hidden rounded-3xl border-slate-200 bg-white py-0 shadow-[0_14px_32px_rgba(15,23,42,0.07)]">
+      <CardHeader className="space-y-3 border-b border-slate-100 bg-gradient-to-r from-sky-50 via-white to-cyan-50 px-4 py-5 sm:px-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <CardTitle className="text-xl font-black tracking-tight text-slate-950 sm:text-2xl">
               Saved Addresses
             </CardTitle>
-            <p className="mt-1 text-sm text-slate-500">
-              Choose one for checkout or edit an existing location.
+            <p className="text-sm text-slate-500">
+              Select one address for checkout, or update an existing one.
             </p>
           </div>
-          <div className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200">
+          <div className="inline-flex w-fit items-center rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-700">
             {addressList?.length || 0} saved
           </div>
         </div>
       </CardHeader>
 
-      <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 xl:grid-cols-3">
-        {addressList && addressList.length > 0 ? (
-          addressList.map((singleAddressItem) => (
-            <AddressCard
-              key={singleAddressItem?._id}
-              selectedId={selectedId}
-              handleDeleteAddress={handleDeleteAddress}
-              addressInfo={singleAddressItem}
-              handleEditAddress={handleEditAddress}
-              setCurrentSelectedAddress={setCurrentSelectedAddress}
-            />
-          ))
-        ) : (
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center sm:col-span-2 xl:col-span-3">
-            <p className="text-lg font-semibold text-slate-950">
-              No saved address yet
-            </p>
-            <p className="mt-1 text-sm text-slate-500">
-              Add one below. It will appear here as a polished address card.
-            </p>
-          </div>
-        )}
-      </div>
-      <CardHeader className="border-t border-slate-100 bg-slate-50/60">
-        <CardTitle className="font-black tracking-tight text-slate-950">
+      <CardContent className="px-4 py-5 sm:px-6">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+          {addressList && addressList.length > 0 ? (
+            addressList.map((singleAddressItem, index) => (
+              <AddressCard
+                key={singleAddressItem?._id}
+                addressIndex={index}
+                selectedId={selectedId}
+                handleDeleteAddress={handleDeleteAddress}
+                addressInfo={singleAddressItem}
+                handleEditAddress={handleEditAddress}
+                setCurrentSelectedAddress={setCurrentSelectedAddress}
+              />
+            ))
+          ) : (
+            <div className="flex min-h-[220px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 text-center lg:col-span-2 xl:col-span-3">
+              <p className="text-lg font-semibold text-slate-900">No saved address yet</p>
+              <p className="mt-1 text-sm text-slate-500">
+                Add your first address below to continue checkout.
+              </p>
+            </div>
+          )}
+        </div>
+      </CardContent>
+
+      <CardHeader className="border-t border-slate-100 bg-slate-50/70 px-4 py-4 sm:px-6">
+        <CardTitle className="text-lg font-black tracking-tight text-slate-950">
           {currentEditedId !== null ? "Edit Address" : "Add New Address"}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+
+      <CardContent className="px-4 py-5 sm:px-6">
         <CommonForm
           formControls={addressFormControls}
           formData={formData}

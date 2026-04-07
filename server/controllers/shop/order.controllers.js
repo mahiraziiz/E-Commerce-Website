@@ -3,6 +3,10 @@ import { Order } from "../../models/order.models.js";
 import { Product } from "../../models/product.models.js";
 import { Cart } from "../../models/cart.models.js";
 
+const PAYMENT_CURRENCY = (process.env.PAYPAL_CURRENCY || "USD").toUpperCase();
+
+const toFixedAmount = (value) => Number(value || 0).toFixed(2);
+
 const createOrder = async (req, res) => {
   try {
     const {
@@ -20,6 +24,22 @@ const createOrder = async (req, res) => {
       cartId,
     } = req.body;
 
+    const sanitizedCartItems = (cartItems || []).map((item) => {
+      const price = Number(item?.price || 0);
+      const quantity = Number(item?.quantity || 0);
+
+      return {
+        ...item,
+        price,
+        quantity,
+      };
+    });
+
+    const calculatedTotalAmount = sanitizedCartItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0,
+    );
+
     const create_payment_json = {
       intent: "sale",
       payer: {
@@ -32,17 +52,17 @@ const createOrder = async (req, res) => {
       transactions: [
         {
           item_list: {
-            items: cartItems.map((item) => ({
+            items: sanitizedCartItems.map((item) => ({
               name: item.title,
               sku: item.productId,
-              price: item.price.toFixed(2),
-              currency: "USD",
+              price: toFixedAmount(item.price),
+              currency: PAYMENT_CURRENCY,
               quantity: item.quantity,
             })),
           },
           amount: {
-            currency: "USD",
-            total: totalAmount.toFixed(2),
+            currency: PAYMENT_CURRENCY,
+            total: toFixedAmount(calculatedTotalAmount || totalAmount),
           },
           description: "This is the payment description.",
         },
@@ -51,11 +71,17 @@ const createOrder = async (req, res) => {
 
     paypal.payment.create(create_payment_json, async (error, paymentInfo) => {
       if (error) {
-        console.log(error);
+        console.log(error?.response || error);
+
+        const paypalMessage =
+          error?.response?.message ||
+          error?.response?.details?.[0]?.issue ||
+          "Error while creating paypal payment";
 
         return res.status(500).json({
           success: false,
-          message: "Error while creating paypal payment",
+          message: paypalMessage,
+          currency: PAYMENT_CURRENCY,
         });
       } else {
         const newlyCreatedOrder = new Order({
@@ -76,7 +102,7 @@ const createOrder = async (req, res) => {
         await newlyCreatedOrder.save();
 
         const approvalURL = paymentInfo.links.find(
-          (link) => link.rel === "approval_url"
+          (link) => link.rel === "approval_url",
         ).href;
 
         res.status(201).json({
@@ -84,6 +110,7 @@ const createOrder = async (req, res) => {
           message: "Order created successfully",
           approvalURL,
           orderId: newlyCreatedOrder._id,
+          currency: PAYMENT_CURRENCY,
         });
       }
     });
