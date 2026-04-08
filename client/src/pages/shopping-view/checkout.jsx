@@ -96,8 +96,26 @@ function ShoppingCheckout() {
         setIsPaymemntStart(true);
       } else {
         setIsPaymemntStart(false);
+
+        const errorMessage =
+          data?.payload?.message || "Unable to start PayPal payment.";
+        const errorIssue = data?.payload?.details?.issue;
+        const errorDescription = data?.payload?.details?.description;
+        const errorDebugId = data?.payload?.details?.debugId;
+        const errorCurrency = data?.payload?.currency;
+
+        const detailLine = [
+          errorDescription,
+          errorIssue ? `Issue: ${errorIssue}` : null,
+          errorCurrency ? `Currency: ${errorCurrency}` : null,
+          errorDebugId ? `Debug ID: ${errorDebugId}` : null,
+        ]
+          .filter(Boolean)
+          .join(" | ");
+
         toast({
-          title: data?.payload?.message || "Unable to start PayPal payment.",
+          title: errorMessage,
+          description: detailLine || "Please try again or use another PayPal account.",
           variant: "destructive",
         });
       }

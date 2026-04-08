@@ -8,28 +8,42 @@ const initialState = {
 
 export const addReview = createAsyncThunk(
   "reviews/addReview",
-  async ({ productId, userId, userName, reviewMessage, reviewValue }) => {
-    const response = await axios.post(
-      `http://localhost:5000/api/shop/products/review/${productId}`,
-      {
-        userId,
-        userName,
-        reviewMessage,
-        reviewValue,
-      }
-    );
-    return response.data;
-  }
+  async (
+    { productId, userId, userName, reviewMessage, reviewValue },
+    thunkAPI,
+  ) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/shop/review/add",
+        {
+          productId,
+          userId,
+          userName,
+          reviewMessage,
+          reviewValue,
+        },
+        {
+          withCredentials: true,
+        },
+      );
+
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error?.response?.data?.message || "Unable to submit review.",
+      );
+    }
+  },
 );
 
 export const getReviews = createAsyncThunk(
   "reviews/getReviews",
   async (productId) => {
     const result = await axios.get(
-      `http://localhost:5000/api/shop/products/review/${productId}`
+      `http://localhost:5000/api/shop/review/${productId}`,
     );
     return result?.data;
-  }
+  },
 );
 
 const reviewSlice = createSlice({
@@ -41,7 +55,7 @@ const reviewSlice = createSlice({
       .addCase(addReview.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(addReview.fulfilled, (state, action) => {
+      .addCase(addReview.fulfilled, (state) => {
         state.isLoading = false;
         // Optionally push new review or refetch all
       })

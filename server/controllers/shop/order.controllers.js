@@ -7,8 +7,34 @@ const PAYMENT_CURRENCY = (process.env.PAYPAL_CURRENCY || "USD").toUpperCase();
 
 const toFixedAmount = (value) => Number(value || 0).toFixed(2);
 
+const parsePaypalError = (error) => {
+  const response = error?.response || {};
+  const details = Array.isArray(response?.details) ? response.details : [];
+  const firstDetail = details[0] || {};
+
+  return {
+    message:
+      response?.message ||
+      firstDetail?.issue ||
+      error?.message ||
+      "Error while creating paypal payment",
+    debugId: response?.debug_id || null,
+    issue: firstDetail?.issue || null,
+    description: firstDetail?.description || null,
+  };
+};
+
 const createOrder = async (req, res) => {
   try {
+    if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+      return res.status(500).json({
+        success: false,
+        message:
+          "PayPal configuration is missing. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET in server environment.",
+        currency: PAYMENT_CURRENCY,
+      });
+    }
+
     const {
       userId,
       cartItems,
@@ -39,6 +65,14 @@ const createOrder = async (req, res) => {
       (sum, item) => sum + item.price * item.quantity,
       0,
     );
+
+    if (!sanitizedCartItems.length || calculatedTotalAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Cart items are invalid for payment.",
+        currency: PAYMENT_CURRENCY,
+      });
+    }
 
     const create_payment_json = {
       intent: "sale",
@@ -71,16 +105,20 @@ const createOrder = async (req, res) => {
 
     paypal.payment.create(create_payment_json, async (error, paymentInfo) => {
       if (error) {
-        console.log(error?.response || error);
-
-        const paypalMessage =
-          error?.response?.message ||
-          error?.response?.details?.[0]?.issue ||
-          "Error while creating paypal payment";
+        const paypalError = parsePaypalError(error);
+        console.log("PayPal create payment error:", {
+          currency: PAYMENT_CURRENCY,
+          ...paypalError,
+        });
 
         return res.status(500).json({
           success: false,
-          message: paypalMessage,
+          message: paypalError.message,
+          details: {
+            issue: paypalError.issue,
+            description: paypalError.description,
+            debugId: paypalError.debugId,
+          },
           currency: PAYMENT_CURRENCY,
         });
       } else {
@@ -101,9 +139,17 @@ const createOrder = async (req, res) => {
 
         await newlyCreatedOrder.save();
 
-        const approvalURL = paymentInfo.links.find(
+        const approvalURL = paymentInfo?.links?.find(
           (link) => link.rel === "approval_url",
-        ).href;
+        )?.href;
+
+        if (!approvalURL) {
+          return res.status(500).json({
+            success: false,
+            message: "PayPal approval link was not returned.",
+            currency: PAYMENT_CURRENCY,
+          });
+        }
 
         res.status(201).json({
           success: true,

@@ -11,10 +11,12 @@ import StarRatingComponent from "../common/StarRating";
 import { useEffect, useState } from "react";
 import { addReview, getReviews } from "@/store/shop/review-slice/index.js";
 import { useToast } from "@/hooks/useToast.js";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const [reviewMsg, setReviewMsg] = useState("");
   const [rating, setRating] = useState(0);
+  const [selectedImage, setSelectedImage] = useState("");
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.shopCart);
@@ -33,7 +35,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
 
     if (getCartItems.length) {
       const indexOfCurrentItem = getCartItems.findIndex(
-        (item) => item.productId === getCurrentProductId
+        (item) => item.productId === getCurrentProductId,
       );
       if (indexOfCurrentItem > -1) {
         const getQuantity = getCartItems[indexOfCurrentItem].quantity;
@@ -52,7 +54,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
         userId: user?.id,
         productId: getCurrentProductId,
         quantity: 1,
-      })
+      }),
     ).then((data) => {
       if (data?.payload?.success) {
         dispatch(fetchCartItems(user?.id));
@@ -63,37 +65,68 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
     });
   }
 
-  function handleDialogClose() {
+  function handleDialogClose(nextOpen) {
+    if (nextOpen) return;
+
     setOpen(false);
     dispatch(setProductDetails());
     setRating(0);
     setReviewMsg("");
+    setSelectedImage("");
   }
 
-  function handleAddReview() {
-    dispatch(
-      addReview({
-        productId: productDetails?._id,
-        userId: user?.id,
-        userName: user?.userName,
-        reviewMessage: reviewMsg,
-        reviewValue: rating,
-      })
-    ).then((data) => {
-      if (data?.payload?.success) {
-        setRating(0);
-        setReviewMsg("");
-        dispatch(getReviews(productDetails?._id));
-        toast({
-          title: "Review added successfully!",
-        });
-      }
-    });
+  async function handleAddReview() {
+    if (rating === 0) {
+      toast({
+        title: "Please select a star rating before submitting.",
+        variant: "destructive",
+      });
+
+      return;
+    }
+
+    const currentUserId = user?.id || user?._id;
+
+    if (!currentUserId) {
+      toast({
+        title: "Please login again before submitting a review.",
+        variant: "destructive",
+      });
+
+      return;
+    }
+
+    try {
+      await dispatch(
+        addReview({
+          productId: productDetails?._id,
+          userId: currentUserId,
+          userName: user?.userName,
+          reviewMessage: reviewMsg,
+          reviewValue: rating,
+        }),
+      ).unwrap();
+
+      setRating(0);
+      setReviewMsg("");
+      dispatch(getReviews(productDetails?._id));
+      toast({
+        title: "Review added successfully!",
+      });
+    } catch (errorMessage) {
+      toast({
+        title:
+          typeof errorMessage === "string"
+            ? errorMessage
+            : "Unable to add review. Make sure this product was purchased.",
+        variant: "destructive",
+      });
+    }
   }
 
   useEffect(() => {
     if (productDetails !== null) dispatch(getReviews(productDetails?._id));
-  }, [productDetails]);
+  }, [dispatch, productDetails]);
 
   console.log(reviews, "reviews");
 
@@ -106,42 +139,104 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const productImages = productDetails?.images?.length
     ? productDetails.images
     : productDetails?.image
-    ? [productDetails.image]
-    : [];
+      ? [productDetails.image]
+      : [];
+
+  const displayImage = selectedImage || productImages[0];
+
+  const selectedImageIndex = productImages.findIndex(
+    (imageUrl) => imageUrl === displayImage,
+  );
+
+  function handleSlideImage(direction) {
+    if (productImages.length <= 1) return;
+
+    const currentIndex = selectedImageIndex > -1 ? selectedImageIndex : 0;
+
+    const nextIndex =
+      direction === "next"
+        ? (currentIndex + 1) % productImages.length
+        : (currentIndex - 1 + productImages.length) % productImages.length;
+
+    setSelectedImage(productImages[nextIndex]);
+  }
+
+  useEffect(() => {
+    const firstImage = productDetails?.images?.length
+      ? productDetails.images[0]
+      : productDetails?.image || "";
+
+    if (firstImage) {
+      setSelectedImage(firstImage);
+    }
+  }, [productDetails]);
 
   return (
     <Dialog open={open} onOpenChange={handleDialogClose}>
-      <DialogContent className="grid max-w-[90vw] gap-8 rounded-[1.75rem] border-slate-200/80 bg-white p-6 sm:max-w-[80vw] sm:p-10 lg:max-w-[68vw] lg:grid-cols-2">
+      <DialogContent className="grid max-h-[92vh] max-w-[92vw] gap-8 overflow-y-auto rounded-[1.75rem] border-slate-200/80 bg-white p-6 sm:max-w-[84vw] sm:p-8 lg:max-w-[72vw] lg:grid-cols-2">
         <div className="space-y-4">
           <div className="relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-slate-50">
             <img
-              src={productImages[0]}
+              src={displayImage}
               alt={productDetails?.title}
               width={600}
               height={600}
               className="aspect-square w-full object-cover"
             />
+            {productImages.length > 1 ? (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleSlideImage("prev")}
+                  className="absolute left-3 top-1/2 h-9 w-9 -translate-y-1/2 rounded-full border-white/40 bg-white/90 text-slate-900 shadow"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleSlideImage("next")}
+                  className="absolute right-3 top-1/2 h-9 w-9 -translate-y-1/2 rounded-full border-white/40 bg-white/90 text-slate-900 shadow"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </>
+            ) : null}
           </div>
           {productImages.length > 1 ? (
-            <div className="grid grid-cols-4 gap-3">
-              {productImages.slice(0, 4).map((imageUrl, index) => (
+            <div className="flex gap-3 overflow-x-auto pb-1">
+              {productImages.map((imageUrl) => (
                 <button
                   key={imageUrl}
                   type="button"
-                  className={`overflow-hidden rounded-2xl border transition hover:opacity-90 ${
-                    index === 0 ? "border-sky-400 ring-2 ring-sky-100" : "border-slate-200"
+                  onClick={() => setSelectedImage(imageUrl)}
+                  className={`h-20 w-20 shrink-0 overflow-hidden rounded-2xl border transition hover:opacity-90 ${
+                    imageUrl === displayImage
+                      ? "border-sky-400 ring-2 ring-sky-100"
+                      : "border-slate-200"
                   }`}
                 >
-                  <img src={imageUrl} alt={productDetails?.title} className="h-20 w-full object-cover" />
+                  <img
+                    src={imageUrl}
+                    alt={productDetails?.title}
+                    className="h-20 w-20 object-cover"
+                  />
                 </button>
               ))}
             </div>
           ) : null}
         </div>
-        <div className="space-y-5">
+        <div className="flex min-h-0 flex-col gap-5">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-600">Product details</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">{productDetails?.title}</h1>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-600">
+              Product details
+            </p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">
+              {productDetails?.title}
+            </h1>
             <p className="mt-4 text-base leading-7 text-slate-600">
               {productDetails?.description}
             </p>
@@ -179,7 +274,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                 onClick={() =>
                   handleAddToCart(
                     productDetails?._id,
-                    productDetails?.totalStock
+                    productDetails?.totalStock,
                   )
                 }
               >
@@ -188,12 +283,17 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
             )}
           </div>
           <Separator className="bg-slate-100" />
-          <div className="max-h-[300px] overflow-auto pr-1">
-            <h2 className="mb-3 text-lg font-bold tracking-tight text-slate-950">Reviews</h2>
+          <div className="min-h-[180px] max-h-[34vh] overflow-y-auto pr-1">
+            <h2 className="mb-3 text-lg font-bold tracking-tight text-slate-950">
+              Reviews
+            </h2>
             <div className="grid gap-6">
               {reviews && reviews.length > 0 ? (
                 reviews.map((reviewItem) => (
-                  <div key={reviewItem?._id || reviewItem?.userName} className="flex gap-4 rounded-2xl bg-slate-50 p-4">
+                  <div
+                    key={reviewItem?._id || reviewItem?.userName}
+                    className="flex gap-4 rounded-2xl bg-slate-50 p-4"
+                  >
                     <Avatar className="h-10 w-10 border border-sky-100 bg-sky-50">
                       <AvatarFallback className="bg-sky-600 text-white">
                         {reviewItem?.userName[0].toUpperCase()}
@@ -201,7 +301,9 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                     </Avatar>
                     <div className="grid gap-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-slate-950">{reviewItem?.userName}</h3>
+                        <h3 className="font-semibold text-slate-950">
+                          {reviewItem?.userName}
+                        </h3>
                       </div>
                       <div className="flex items-center gap-0.5">
                         <StarRatingComponent rating={reviewItem?.reviewValue} />
@@ -218,28 +320,30 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                 </div>
               )}
             </div>
-            <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4">
-              <Label className="text-sm font-semibold text-slate-900">Write a review</Label>
-              <div className="flex gap-1">
-                <StarRatingComponent
-                  rating={rating}
-                  handleRatingChange={handleRatingChange}
-                />
-              </div>
-              <Input
-                name="reviewMsg"
-                value={reviewMsg}
-                onChange={(event) => setReviewMsg(event.target.value)}
-                placeholder="Share your experience..."
+          </div>
+          <div className="sticky bottom-0 mt-4 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_-8px_20px_rgba(15,23,42,0.06)]">
+            <Label className="text-sm font-semibold text-slate-900">
+              Write a review
+            </Label>
+            <div className="flex gap-1">
+              <StarRatingComponent
+                rating={rating}
+                handleRatingChange={handleRatingChange}
               />
-              <Button
-                onClick={handleAddReview}
-                className="rounded-2xl bg-sky-600 text-white hover:bg-sky-500"
-                disabled={reviewMsg.trim() === ""}
-              >
-                Submit
-              </Button>
             </div>
+            <Input
+              name="reviewMsg"
+              value={reviewMsg}
+              onChange={(event) => setReviewMsg(event.target.value)}
+              placeholder="Share your experience..."
+            />
+            <Button
+              onClick={handleAddReview}
+              className="rounded-2xl bg-sky-600 text-white hover:bg-sky-500"
+              disabled={reviewMsg.trim() === "" || rating === 0}
+            >
+              Submit Review
+            </Button>
           </div>
         </div>
       </DialogContent>

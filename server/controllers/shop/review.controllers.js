@@ -7,13 +7,36 @@ const addProductReview = async (req, res) => {
     const { productId, userId, userName, reviewMessage, reviewValue } =
       req.body;
 
-    const order = await Order.findOne({
-      userId,
-      "cartItems.productId": productId,
-      // orderStatus: "confirmed" || "delivered",
-    });
+    if (!productId || !userId) {
+      return res.status(400).json({
+        success: false,
+        message: "Product and user information is required.",
+      });
+    }
 
-    if (!order) {
+    const normalizedReviewValue = Number(reviewValue);
+
+    if (
+      !normalizedReviewValue ||
+      Number.isNaN(normalizedReviewValue) ||
+      normalizedReviewValue < 1 ||
+      normalizedReviewValue > 5
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Review rating must be between 1 and 5.",
+      });
+    }
+
+    const userOrders = await Order.find({ userId }).select("cartItems");
+
+    const hasPurchasedProduct = userOrders.some((orderItem) =>
+      (orderItem?.cartItems || []).some(
+        (cartItem) => String(cartItem?.productId) === String(productId),
+      ),
+    );
+
+    if (!hasPurchasedProduct) {
       return res.status(403).json({
         success: false,
         message: "You need to purchase product to review it.",
@@ -35,9 +58,9 @@ const addProductReview = async (req, res) => {
     const newReview = new Review({
       productId,
       userId,
-      userName,
-      reviewMessage,
-      reviewValue,
+      userName: userName || "User",
+      reviewMessage: reviewMessage?.trim() || "",
+      reviewValue: normalizedReviewValue,
     });
 
     await newReview.save();

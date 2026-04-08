@@ -2,21 +2,21 @@ import { Card, CardContent, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 import { brandOptionsMap, categoryOptionsMap } from "@/config";
 import { Badge } from "../ui/badge";
+import { Link } from "react-router-dom";
 
-function ShoppingProductTile({
-  product,
-  handleGetProductDetails,
-  handleAddtoCart,
-}) {
+function ShoppingProductTile({ product, handleAddtoCart }) {
+  const productId = product?._id || product?.id;
+  const productRoute = productId ? `/shop/product/${productId}` : "#";
+
   const productImages = product?.images?.length
     ? product.images
     : product?.image
-    ? [product.image]
-    : [];
+      ? [product.image]
+      : [];
 
   return (
     <Card className="group w-full max-w-sm overflow-hidden rounded-[1.5rem] border-slate-200/80 bg-white shadow-[0_12px_36px_rgba(15,23,42,0.06)] transition-all hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
-      <div onClick={() => handleGetProductDetails(product?._id)} className="cursor-pointer">
+      <Link to={productRoute} className="block cursor-pointer">
         <div className="relative overflow-hidden">
           <img
             src={productImages[0]}
@@ -38,7 +38,9 @@ function ShoppingProductTile({
           ) : null}
         </div>
         <CardContent className="space-y-3 p-4">
-          <h2 className="line-clamp-2 text-lg font-semibold tracking-tight text-slate-950">{product?.title}</h2>
+          <h2 className="line-clamp-2 text-lg font-semibold tracking-tight text-slate-950">
+            {product?.title}
+          </h2>
           {productImages.length > 1 ? (
             <div className="flex gap-2 overflow-hidden">
               {productImages.slice(0, 3).map((imageUrl) => (
@@ -67,7 +69,9 @@ function ShoppingProductTile({
           <div className="flex items-center justify-between gap-3 rounded-2xl bg-sky-50 px-3 py-2">
             <span
               className={`${
-                product?.salePrice > 0 ? "line-through text-slate-400" : "text-slate-950"
+                product?.salePrice > 0
+                  ? "line-through text-slate-400"
+                  : "text-slate-950"
               } text-lg font-semibold`}
             >
               ${product?.price}
@@ -79,7 +83,7 @@ function ShoppingProductTile({
             ) : null}
           </div>
         </CardContent>
-      </div>
+      </Link>
       <CardFooter>
         {product?.totalStock === 0 ? (
           <Button className="w-full cursor-not-allowed rounded-2xl bg-slate-200 text-slate-500 opacity-100 hover:bg-slate-200">
@@ -87,7 +91,10 @@ function ShoppingProductTile({
           </Button>
         ) : (
           <Button
-            onClick={() => handleAddtoCart(product?._id, product?.totalStock)}
+            onClick={(event) => {
+              event.stopPropagation();
+              handleAddtoCart(productId, product?.totalStock);
+            }}
             className="w-full rounded-2xl bg-sky-600 text-white shadow-lg shadow-sky-600/20 hover:bg-sky-500"
           >
             Add to cart
