@@ -84,3 +84,8 @@ async function startServer() {
 }
 
 startServer();
+
+
+
+// For development purposes, you can use the following command to start the server with nodemon:
+// npx nodemon server/server.js
