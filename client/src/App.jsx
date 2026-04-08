@@ -16,7 +16,6 @@ import ShoppingHome from "./pages/shopping-view/Home";
 import ShoppingListing from "./pages/shopping-view/Listing";
 import ShoppingCheckout from "./pages/shopping-view/Checkout";
 import ShoppingAccount from "./pages/shopping-view/Account";
-import ShoppingProductDetailsPage from "./pages/shopping-view/ProductDetails";
 import PaypalReturnPage from "./pages/shopping-view/PaypalReturn";
 import PaypalCancelPage from "./pages/shopping-view/PaypalCancel";
 import PaymentSuccessPage from "./pages/shopping-view/PaymentSuccess";
@@ -40,7 +39,7 @@ function App() {
   if (isLoading) return <PageLoader />;
 
   return (
-    <div className="flex min-h-screen flex-col overflow-x-hidden bg-white">
+    <div className="flex flex-col overflow-hidden bg-white">
       <Routes>
         <Route
           path="/"
@@ -87,7 +86,6 @@ function App() {
         >
           <Route path="home" element={<ShoppingHome />} />
           <Route path="listing" element={<ShoppingListing />} />
-          <Route path="product/:productId" element={<ShoppingProductDetailsPage />} />
           <Route path="checkout" element={<ShoppingCheckout />} />
           <Route path="account" element={<ShoppingAccount />} />
           <Route path="paypal-return" element={<PaypalReturnPage />} />
