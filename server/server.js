@@ -38,7 +38,7 @@ app.use(
       "Pragma",
     ],
     credentials: true,
-  }),
+  })
 );
 
 app.use(cookieParser());
@@ -84,9 +84,3 @@ async function startServer() {
 }
 
 startServer();
-
-// async function startServer() {
-//   if (!MONGODB_URL) {
-//     console.error("MONGODB_URL is missing. Add it to server/.env and restart.");
-//     process.exit(1);
-//   }
