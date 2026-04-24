@@ -8,14 +8,21 @@ function PaypalReturnPage() {
   const dispatch = useDispatch();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
-  const paymentId = params.get("paymentId");
+  const paymentId = params.get("paymentId") || params.get("token");
   const payerId = params.get("PayerID");
 
   useEffect(() => {
     if (paymentId && payerId) {
       const orderId = JSON.parse(sessionStorage.getItem("currentOrderId"));
 
-      dispatch(capturePayment({ paymentId, payerId, orderId })).then((data) => {
+      dispatch(
+        capturePayment({
+          paymentId,
+          payerId,
+          orderId,
+          paypalOrderId: paymentId,
+        })
+      ).then((data) => {
         if (data?.payload?.success) {
           sessionStorage.removeItem("currentOrderId");
           window.location.href = "/shop/payment-success";

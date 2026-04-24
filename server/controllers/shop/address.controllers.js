@@ -71,7 +71,7 @@ const fetchAllAddress = async (req, res) => {
     }
 
     const addresses = await Address.find({ userId });
-    console.log(addresses, "address to yahi hai");
+    // console.log(addresses, "address to yahi hai");
     if (!addresses) {
       return res
         .status(404)

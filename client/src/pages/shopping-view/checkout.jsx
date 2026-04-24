@@ -2,10 +2,14 @@ import Address from "@/components/shopping-view/ShopAddress";
 import img from "../../assets/account.jpg";
 import { useDispatch, useSelector } from "react-redux";
 import UserCartItemsContent from "@/components/shopping-view/ShopCartItemContent";
-import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { createNewOrder } from "@/store/shop/order-slice";
+import {
+  capturePayment,
+  createNewOrder,
+  getPayPalConfig,
+} from "@/store/shop/order-slice";
 import { useToast } from "@/hooks/useToast";
+import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 
 const usdFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -15,9 +19,10 @@ const usdFormatter = new Intl.NumberFormat("en-US", {
 function ShoppingCheckout() {
   const { cartItems } = useSelector((state) => state.shopCart);
   const { user } = useSelector((state) => state.auth);
-  const { approvalURL } = useSelector((state) => state.shopOrder);
+  const { paypalClientId } = useSelector((state) => state.shopOrder);
   const [currentSelectedAddress, setCurrentSelectedAddress] = useState(null);
-  const [isPaymentStart, setIsPaymemntStart] = useState(false);
+  const [isSmartButtonBusy, setIsSmartButtonBusy] = useState(false);
+  const [payMode, setPayMode] = useState("card");
   const dispatch = useDispatch();
   const { toast } = useToast();
 
@@ -37,90 +42,133 @@ function ShoppingCheckout() {
       : 0;
 
   useEffect(() => {
-    if (approvalURL) {
-      window.location.href = approvalURL;
-    }
-  }, [approvalURL]);
+    dispatch(getPayPalConfig());
+  }, [dispatch]);
 
-  function handleInitiatePaypalPayment() {
+  const getOrderData = (paymentMethod = "paypal", checkoutType = "smart-buttons") => ({
+    userId: user?.id || user?._id,
+    cartId: cartItems?._id,
+    cartItems: cartItemList.map((singleCartItem) => ({
+      productId: singleCartItem?.productId,
+      title: singleCartItem?.title,
+      image: singleCartItem?.image,
+      price:
+        singleCartItem?.salePrice > 0
+          ? singleCartItem?.salePrice
+          : singleCartItem?.price,
+      quantity: singleCartItem?.quantity,
+    })),
+    addressInfo: {
+      addressId: currentSelectedAddress?._id,
+      address: currentSelectedAddress?.address,
+      city: currentSelectedAddress?.city,
+      pincode: currentSelectedAddress?.pincode,
+      phone: currentSelectedAddress?.phone,
+      notes: currentSelectedAddress?.notes,
+    },
+    orderStatus: "pending",
+    paymentMethod,
+    paymentStatus: "pending",
+    totalAmount: totalCartAmount,
+    orderDate: new Date(),
+    orderUpdateDate: new Date(),
+    paymentId: "",
+    payerId: "",
+    checkoutType,
+  });
+
+  const validateCheckoutData = () => {
     if (cartItemList.length === 0) {
       toast({
         title: "Your cart is empty. Please add items to proceed",
         variant: "destructive",
       });
-
-      return;
+      return false;
     }
+
     if (currentSelectedAddress === null) {
       toast({
         title: "Please select one address to proceed.",
         variant: "destructive",
       });
+      return false;
+    }
 
+    return true;
+  };
+
+  const handleSmartPaymentError = (payload, fallbackMessage) => {
+    const errorMessage = payload?.message || fallbackMessage;
+    const errorIssue = payload?.details?.issue;
+    const errorDescription = payload?.details?.description;
+    const errorDebugId = payload?.details?.debugId;
+    const networkCode = payload?.details?.network?.code;
+
+    const detailLine = [
+      errorDescription,
+      errorIssue ? `Issue: ${errorIssue}` : null,
+      errorDebugId ? `Debug ID: ${errorDebugId}` : null,
+      networkCode ? `Network: ${networkCode}` : null,
+    ]
+      .filter(Boolean)
+      .join(" | ");
+
+    toast({
+      title: errorMessage,
+      description: detailLine || "Please try again.",
+      variant: "destructive",
+    });
+  };
+
+  const createOrderForSmartButtons = async (paymentMethod) => {
+    if (!validateCheckoutData()) {
+      throw new Error("Checkout data is invalid");
+    }
+
+    setIsSmartButtonBusy(true);
+    const action = await dispatch(
+      createNewOrder(getOrderData(paymentMethod, "smart-buttons"))
+    );
+    setIsSmartButtonBusy(false);
+
+    const payload = action?.payload;
+
+    if (!payload?.success || !payload?.paymentId || !payload?.orderId) {
+      handleSmartPaymentError(payload, "Unable to create PayPal order.");
+      throw new Error(payload?.message || "Unable to create PayPal order.");
+    }
+
+    sessionStorage.setItem("currentOrderId", JSON.stringify(payload.orderId));
+    return payload.paymentId;
+  };
+
+  const handleOnApprove = async (data) => {
+    const orderId = JSON.parse(sessionStorage.getItem("currentOrderId"));
+
+    if (!orderId || !data?.orderID) {
+      toast({
+        title: "Order capture failed",
+        description: "Missing order information to capture payment.",
+        variant: "destructive",
+      });
       return;
     }
 
-    const orderData = {
-      userId: user?.id || user?._id,
-      cartId: cartItems?._id,
-      cartItems: cartItemList.map((singleCartItem) => ({
-        productId: singleCartItem?.productId,
-        title: singleCartItem?.title,
-        image: singleCartItem?.image,
-        price:
-          singleCartItem?.salePrice > 0
-            ? singleCartItem?.salePrice
-            : singleCartItem?.price,
-        quantity: singleCartItem?.quantity,
-      })),
-      addressInfo: {
-        addressId: currentSelectedAddress?._id,
-        address: currentSelectedAddress?.address,
-        city: currentSelectedAddress?.city,
-        pincode: currentSelectedAddress?.pincode,
-        phone: currentSelectedAddress?.phone,
-        notes: currentSelectedAddress?.notes,
-      },
-      orderStatus: "pending",
-      paymentMethod: "paypal",
-      paymentStatus: "pending",
-      totalAmount: totalCartAmount,
-      orderDate: new Date(),
-      orderUpdateDate: new Date(),
-      paymentId: "",
-      payerId: "",
-    };
+    const action = await dispatch(
+      capturePayment({
+        orderId,
+        paypalOrderId: data.orderID,
+      })
+    );
 
-    dispatch(createNewOrder(orderData)).then((data) => {
-      if (data?.payload?.success) {
-        setIsPaymemntStart(true);
-      } else {
-        setIsPaymemntStart(false);
+    if (action?.payload?.success) {
+      sessionStorage.removeItem("currentOrderId");
+      window.location.href = "/shop/payment-success";
+      return;
+    }
 
-        const errorMessage =
-          data?.payload?.message || "Unable to start PayPal payment.";
-        const errorIssue = data?.payload?.details?.issue;
-        const errorDescription = data?.payload?.details?.description;
-        const errorDebugId = data?.payload?.details?.debugId;
-        const errorCurrency = data?.payload?.currency;
-
-        const detailLine = [
-          errorDescription,
-          errorIssue ? `Issue: ${errorIssue}` : null,
-          errorCurrency ? `Currency: ${errorCurrency}` : null,
-          errorDebugId ? `Debug ID: ${errorDebugId}` : null,
-        ]
-          .filter(Boolean)
-          .join(" | ");
-
-        toast({
-          title: errorMessage,
-          description: detailLine || "Please try again or use another PayPal account.",
-          variant: "destructive",
-        });
-      }
-    });
-  }
+    handleSmartPaymentError(action?.payload, "Unable to capture payment.");
+  };
 
   return (
     <div className="flex flex-col bg-slate-50">
@@ -159,13 +207,73 @@ function ShoppingCheckout() {
               </span>
             </div>
           </div>
-          <div className="mt-4 w-full">
-            <Button onClick={handleInitiatePaypalPayment} className="w-full rounded-2xl bg-sky-600 text-white hover:bg-sky-500">
-              {isPaymentStart
-                ? "Processing Paypal Payment..."
-                : "Checkout with Paypal"}
-            </Button>
-          </div>
+          {paypalClientId ? (
+            <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p className="mb-3 text-sm font-semibold text-slate-700">
+                Pay instantly with PayPal or Card
+              </p>
+              <div className="mb-3 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPayMode("card")}
+                  className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                    payMode === "card"
+                      ? "border-sky-500 bg-sky-100 text-sky-900"
+                      : "border-slate-300 bg-white text-slate-700"
+                  }`}
+                >
+                  Debit / Credit Card
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPayMode("paypal")}
+                  className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                    payMode === "paypal"
+                      ? "border-sky-500 bg-sky-100 text-sky-900"
+                      : "border-slate-300 bg-white text-slate-700"
+                  }`}
+                >
+                  PayPal Account
+                </button>
+              </div>
+              <PayPalScriptProvider
+                options={{
+                  clientId: paypalClientId,
+                  currency: "USD",
+                  intent: "capture",
+                  components: "buttons",
+                  "enable-funding": "card",
+                  "disable-funding": "paylater,venmo,credit",
+                }}
+              >
+                <div className="space-y-3">
+                  <PayPalButtons
+                    fundingSource={payMode === "card" ? "card" : undefined}
+                    disabled={isSmartButtonBusy}
+                    style={{ layout: "vertical", shape: "pill" }}
+                    forceReRender={[payMode, totalCartAmount]}
+                    createOrder={() =>
+                      createOrderForSmartButtons(
+                        payMode === "card" ? "card" : "paypal"
+                      )
+                    }
+                    onApprove={handleOnApprove}
+                    onError={(error) => {
+                      console.error("PayPal checkout error:", error);
+                      toast({
+                        title: "PayPal/Card checkout failed",
+                        description:
+                          payMode === "card"
+                            ? "Card option may be unavailable for this sandbox account/region. Try PayPal mode."
+                            : "Please try again.",
+                        variant: "destructive",
+                      });
+                    }}
+                  />
+                </div>
+              </PayPalScriptProvider>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

@@ -11,10 +11,10 @@ function AdminHeader({ setOpen }) {
   const title = location.pathname.includes("products")
     ? "Products"
     : location.pathname.includes("orders")
-    ? "Orders"
-    : location.pathname.includes("dashboard")
-    ? "Dashboard"
-    : "Admin";
+      ? "Orders"
+      : location.pathname.includes("dashboard")
+        ? "Dashboard"
+        : "Admin";
 
   function handleLogout() {
     dispatch(logoutUser());
@@ -36,7 +36,9 @@ function AdminHeader({ setOpen }) {
           <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">
             Admin workspace
           </p>
-          <h2 className="text-xl font-black tracking-tight text-slate-950">{title}</h2>
+          <h2 className="text-xl font-black tracking-tight text-slate-950">
+            {title}
+          </h2>
         </div>
       </div>
       <div className="ml-auto flex items-center gap-3">

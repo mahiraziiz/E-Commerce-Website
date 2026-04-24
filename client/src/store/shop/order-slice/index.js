@@ -5,9 +5,29 @@ const initialState = {
   approvalURL: null,
   isLoading: false,
   orderId: null,
+  paypalClientId: "",
   orderList: [],
   orderDetails: null,
 };
+
+export const getPayPalConfig = createAsyncThunk(
+  "/order/getPayPalConfig",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/api/shop/order/paypal-config"
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error?.response?.data || {
+          success: false,
+          message: "Unable to load PayPal configuration.",
+        }
+      );
+    }
+  }
+);
 
 export const createNewOrder = createAsyncThunk(
   "/order/createNewOrder",
@@ -31,16 +51,26 @@ export const createNewOrder = createAsyncThunk(
 
 export const capturePayment = createAsyncThunk(
   "/order/capturePayment",
-  async ({ paymentId, payerId, orderId }) => {
-    const response = await axios.post(
-      "http://localhost:5000/api/shop/order/capture",
-      {
-        paymentId,
-        payerId,
-        orderId,
-      }
-    );
-    return response.data;
+  async ({ paymentId, payerId, orderId, paypalOrderId }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/shop/order/capture",
+        {
+          paymentId,
+          payerId,
+          orderId,
+          paypalOrderId,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error?.response?.data || {
+          success: false,
+          message: "Unable to capture payment. Please try again.",
+        }
+      );
+    }
   }
 );
 
@@ -79,7 +109,7 @@ const shoppingOrderSlice = createSlice({
       })
       .addCase(createNewOrder.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.approvalURL = action.payload.approvalURL;
+        state.approvalURL = action.payload.approvalURL || null;
         state.orderId = action.payload.orderId;
         sessionStorage.setItem(
           "currentOrderId",
@@ -90,6 +120,12 @@ const shoppingOrderSlice = createSlice({
         state.isLoading = false;
         state.approvalURL = null;
         state.orderId = null;
+      })
+      .addCase(getPayPalConfig.fulfilled, (state, action) => {
+        state.paypalClientId = action.payload.clientId || "";
+      })
+      .addCase(getPayPalConfig.rejected, (state, action) => {
+        state.paypalClientId = "";
       })
       .addCase(getAllOrdersByUserId.pending, (state, action) => {
         state.isLoading = true;
